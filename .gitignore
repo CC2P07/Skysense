@@ -1,0 +1,6 @@
+# Compilação e binários (evita enviar ficheiros pesados inutilmente)
+.pio/
+build/
+
+# Dados sensíveis e credenciais
+secrets.h
