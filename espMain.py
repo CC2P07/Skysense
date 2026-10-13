@@ -59,4 +59,4 @@ while True:
     except Exception as erro:
         print("Erro:", erro)
 
-    time.sleep(2)
+    time.sleep(60)
