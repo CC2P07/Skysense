@@ -4,6 +4,24 @@ import dht
 import time
 from bmp280 import BMP280
 
+
+SSID = "FAMILIA @LMEIDA"
+SENHA = "Amor@7854"
+
+API_URL = "http://192.168.15.7:8000/api/clima"
+
+def conectar_wifi():
+    modoStation = network.WLAN(network.STA_IF)
+    modoStation.active(True)
+    if not modoStation.isconnected():
+        print("Conectando ao Wi-Fi...")
+        modoStation.connect(SSID, SENHA)
+        while not modoStation.isconnected():
+            time.sleep(1)
+    print("Conectado! IP da placa:", modoStation.ifconfig()[0])
+    
+conectar_wifi()
+
 # Pinos
 dht22 = dht.DHT22(Pin(4))
 
