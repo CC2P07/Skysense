@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-class WeatherData(BaseModel):
+class DadosClima(BaseModel):
     temperatura: float
     umidade: float
     pressao: float
@@ -11,7 +11,7 @@ class WeatherData(BaseModel):
     gas: int
 
 @app.post("/api/clima")
-def receive_data(data: WeatherData):
+def receive_data(data: DadosClima):
     print(f"Temperatura recebida: {data.temperatura}°C")
     print(f"Umidade recebida: {data.umidade}%")
     return {"status": "sucesso"}
