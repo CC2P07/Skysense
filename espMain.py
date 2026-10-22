@@ -58,10 +58,10 @@ print("Monitoramento iniciado!")
 
 while True:
     try:
-        modoStation = network.WLAN(network.STA_IF)
-        if not modoStation.isconnected():
-            conectar_wifi()
-        perfilAtivo = conectar_wifi()
+        modo_station = network.WLAN(network.STA_IF)
+        if not modo_station.isconnected() or perfil_ativo is None:
+            print("Wi-Fi desconectado. Tentando reconectar...")
+            perfilAtivo = conectar_wifi()
             
         dht22.measure()
         temperatura = dht22.temperature()
@@ -93,7 +93,7 @@ while True:
     cabecalhos = {'Content-Type': 'application/json'}
 
         # Realizando teste inicial, mas a ideia é de que tudo gere uma resposta, para facilitar a identificação dos problemas.
-        resposta = urequests.post(API_URL, json=dados_payload, headers=cabecalhos)
+        resposta = urequests.post(perfilAtivo["api_url"], json=dadosArmazenados, headers=cabecalhos)
         print("Dados enviados com sucesso! Status HTTP:", resposta.status_code)
         resposta.close() # Fecha a conexão para liberar memória RAM da placa
 
