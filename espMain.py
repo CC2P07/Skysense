@@ -2,25 +2,43 @@
 from machine import Pin, ADC, I2C
 import dht
 import time
+import network
+import urequests
 from bmp280 import BMP280
 
+# LISTA DE PERFIS PARA CONEXÃO COM O ESP.
+CONFIGURACAO = [
+    {
+        "nome": "Guilherme",
+        "ssid": "FAMILIA @LMEIDA",
+        "senha": "Amor@7854",
+        "api_url": "http://192.168.15.7:8000/api/clima",
+        "cidade": "São Paulo",
+        "estado": "SP"
+    }
+]
 
-SSID = "FAMILIA @LMEIDA"
-SENHA = "Amor@7854"
-
-API_URL = "http://192.168.15.7:8000/api/clima"
-
+# CONEXÃO DE INTERNET. CONEXÃO BASEADA EM CONFIGURACAO, PARA CASO REALIZAR TESTES EM DIFERENTES LOCAIS. Retorna o perfil utilizado no final.
 def conectar_wifi():
     modoStation = network.WLAN(network.STA_IF)
     modoStation.active(True)
-    if not modoStation.isconnected():
-        print("Conectando ao Wi-Fi...")
-        modoStation.connect(SSID, SENHA)
-        while not modoStation.isconnected():
-            time.sleep(1)
-    print("Conectado! IP da placa:", modoStation.ifconfig()[0])
     
-conectar_wifi()
+    for perfil in CONFIGURACAO:
+        print(f"Tentando conectar em: {perfil['nome']} ({perfil['ssid']})...")
+        modoStation.connect(perfil["ssid"], perfil["senha"])
+    
+        tentativas = 0
+        while not modoStation.isconnected() and tentativas < 10:
+            time.sleep(1)
+            tentativas += 1
+            
+        if modoStation.isconnected():
+            print(f"Sucesso! Conectado à rede de: {perfil['nome']}")
+            print("IP da placa:", modoStation.ifconfig()[0])
+            return perfil 
+            
+    print("Aviso: Nenhuma rede conhecida foi encontrada!")
+    return None
 
 # Pinos
 dht22 = dht.DHT22(Pin(4))
@@ -40,6 +58,11 @@ print("Monitoramento iniciado!")
 
 while True:
     try:
+        modoStation = network.WLAN(network.STA_IF)
+        if not modoStation.isconnected():
+            conectar_wifi()
+        perfilAtivo = conectar_wifi()
+            
         dht22.measure()
         temperatura = dht22.temperature()
         umidade = dht22.humidity()
@@ -56,7 +79,26 @@ while True:
         print("LDR:", luminosidade)
         print("Gas MQ-135:", gas_valor)
 
-    except Exception as erro:
-        print("Erro:", erro)
+        if perfilAtivo:
+            dadosArmazenados = {
+                "temperatura": temperatura,
+                "umidade": umidade,
+                "pressao": pressao,
+                "luminosidade": luminosidade,
+                "gas": gas_valor,
+                "cidade": perfilAtivo["cidade"],
+                "estado": perfilAtivo["estado"]
+            }
+    # Para envio facilitado aos dados Pydantic em main.py
+    cabecalhos = {'Content-Type': 'application/json'}
 
+        # Realizando teste inicial, mas a ideia é de que tudo gere uma resposta, para facilitar a identificação dos problemas.
+        resposta = urequests.post(API_URL, json=dados_payload, headers=cabecalhos)
+        print("Dados enviados com sucesso! Status HTTP:", resposta.status_code)
+        resposta.close() # Fecha a conexão para liberar memória RAM da placa
+
+    except Exception as erro:
+        print("Erro ao coletar ou enviar dados:", erro)
+
+    # Intervalo de 60 segundos entre as coletas
     time.sleep(60)
