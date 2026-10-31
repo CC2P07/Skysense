@@ -26,7 +26,7 @@ motores = {
     for usuario, dados in SKYSENSE_DB.items()
 }
 
-sessoes_bd_usuario = {
+instancia_sessao_usuario = {
     usuario: sessionmaker(bind=motor) 
     for usuario, motor in motores.items()
 }
@@ -67,14 +67,14 @@ def receber_salvar_dados_climaticos(dados: DadosClimaSchema):
     usuario_remetente = dados.usuario
     
     # Valida se o perfil/usuário remetente possui banco configurado
-    if usuario_remetente not in sessoes_bd_usuario:
+    if usuario_remetente not in instancia_sessao_usuario:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"O perfil '{usuario_remetente}' não possui um banco de dados mapeado no servidor."
         )
     
     # Seleciona a fábrica de sessão específica daquele perfil
-    SessaoLocal = sessoes_bd_usuario[usuario_remetente]
+    SessaoLocal = instancia_sessao_usuario[usuario_remetente]
     conexao_banco = SessaoLocal()
     
     try:
@@ -122,10 +122,10 @@ def consultar_historico_clima(usuario: str, limite: int = 50):
     """
     Retorna o histórico de registros filtrado por perfil/usuário para exibição em painéis.
     """
-    if usuario not in sessoes_bd_usuario:
+    if usuario not in instancia_sessao_usuario:
         raise HTTPException(status_code=400, detail="Perfil de usuário não encontrado.")
         
-    SessaoLocal = sessoes_bd_usuario[usuario]
+    SessaoLocal = instancia_sessao_usuario[usuario]
     conexao_banco = SessaoLocal()
     
     try:
