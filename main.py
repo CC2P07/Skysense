@@ -1,228 +1,116 @@
 
-import os
-from datetime import datetime
+from machine import Pin, ADC
+import dht
+import time
+import network
+import ujson
+import urequests
 
-from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel, Field
-from sqlalchemy import (
-    create_engine,
-    Column,
-    Float,
-    Integer,
-    String,
-    DateTime,
-)
-from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy.engine import URL
-from dotenv import load_dotenv
+# ==================================
+# CONFIGURACAO DA REDE E DA API
+# ==================================
 
-# ==========================================
-# 1. CONFIGURAÇÃO DO AMBIENTE
-# ==========================================
+WIFI_SSID = "FAMILIA @LMEIDA"
+WIFI_SENHA = "Amor@7854"
 
-load_dotenv()
+API_URL = "http://192.168.15.7:8000/api/clima"
 
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = int(os.getenv("DB_PORT", "5432"))
-DB_NAME = os.getenv("DB_NAME")
+# ==================================
+# CONFIGURACAO DOS SENSORES
+# ==================================
 
-if not all([DB_USER, DB_PASSWORD, DB_NAME]):
-    raise RuntimeError("Configure DB_USER, DB_PASSWORD e DB_NAME no .env")
+# Sensor DHT22
+dht22 = dht.DHT22(Pin(4))
 
-DATABASE_URL = URL.create(
-    drivername="postgresql+psycopg2",
-    username=DB_USER,
-    password=DB_PASSWORD,
-    host=DB_HOST,
-    port=DB_PORT,
-    database=DB_NAME,
-)
+# Sensor LDR
+ldr = ADC(Pin(35))
+ldr.atten(ADC.ATTN_11DB)
 
-# ==========================================
-# 2. CONEXÃO COM POSTGRESQL
-# ==========================================
+# Sensor MQ-135
+gas = ADC(Pin(34))
+gas.atten(ADC.ATTN_11DB)
 
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True
-)
+# BMP280: reservado para ativacao futura
+# O sensor esta desconectado no momento.
+sensor_bmp = None
+pressao = 0
 
-SessionLocal = sessionmaker(
-    bind=engine,
-    autoflush=False,
-    autocommit=False
-)
+print("BMP280: leitura desativada temporariamente")
 
-Base = declarative_base()
+# ==================================
+# CONEXAO WIFI
+# ==================================
 
-# ==========================================
-# 3. CONFIGURAÇÃO DA API
-# ==========================================
+wifi = network.WLAN(network.STA_IF)
 
-app = FastAPI(
-    title="API Estação Meteorológica SkySense",
-    description="API para recebimento de dados dos sensores ESP32.",
-    version="2.3.0"
-)
+try:
+    wifi.active(False)
+    time.sleep(2)
+except:
+    pass
 
-# ==========================================
-# 4. MODELO DA TABELA
-# ==========================================
+wifi.active(True)
+time.sleep(2)
 
-class ModeloClimaHistorico(Base):
-    __tablename__ = "clima_historico"
+print("Conectando ao Wi-Fi...")
 
-    id = Column(Integer, primary_key=True, index=True)
-    temperatura = Column(Float)
-    umidade = Column(Float)
-    pressao = Column(Float)
-    luminosidade = Column(Float)
-    gas = Column(Integer)
-    cidade = Column(String, nullable=False)
-    estado = Column(String, nullable=False)
-    criado_em = Column(DateTime, default=datetime.now)
+wifi.connect(WIFI_SSID, WIFI_SENHA)
 
+# ==================================
+# ENVIO DOS DADOS
+# ==================================
 
-# ==========================================
-# 5. MODELO DOS DADOS RECEBIDOS
-# ==========================================
+print("Monitoramento SkySense iniciado!")
 
-class DadosClimaSchema(BaseModel):
-    usuario: str
-    temperatura: float
-    umidade: float
-    pressao: float
-    luminosidade: float
-    gas: int
-    cidade: str = "São Paulo"
-    estado: str = "SP"
-
-
-# ==========================================
-# 6. CRIAÇÃO AUTOMÁTICA DA TABELA
-# ==========================================
-
-@app.on_event("startup")
-def iniciar_banco():
-    Base.metadata.create_all(bind=engine)
-    print("[SUCESSO] Conectado ao PostgreSQL!")
-    print(f"[BANCO] {DB_NAME}")
-
-
-# ==========================================
-# 7. ROTA PRINCIPAL
-# ==========================================
-
-@app.get("/")
-def inicio():
-    return {
-        "projeto": "SkySense",
-        "status": "API funcionando",
-        "versao": "2.3.0"
-    }
-
-
-# ==========================================
-# 8. RECEBER E SALVAR DADOS DOS SENSORES
-# ==========================================
-
-@app.post("/api/clima", status_code=status.HTTP_201_CREATED)
-def receber_salvar_dados(dados: DadosClimaSchema):
-
-    if dados.usuario != "Guilherme":
-        raise HTTPException(
-            status_code=400,
-            detail="Perfil de usuário não encontrado."
-        )
-
-    conexao = SessionLocal()
-
+while True:
     try:
-        novo_registro = ModeloClimaHistorico(
-            temperatura=dados.temperatura,
-            umidade=dados.umidade,
-            pressao=dados.pressao,
-            luminosidade=dados.luminosidade,
-            gas=dados.gas,
-            cidade=dados.cidade,
-            estado=dados.estado
+        # Leitura do DHT22
+        dht22.measure()
+        temperatura = dht22.temperature()
+        umidade = dht22.humidity()
+
+        # Leitura dos sensores analogicos
+        luminosidade = ldr.read()
+        gas_valor = gas.read()
+
+        # Pressao: BMP280 desativado
+        if sensor_bmp is not None:
+            pressao = sensor_bmp.pressure / 100
+        else:
+            pressao = 0
+
+        # Organizacao dos dados
+        dados = {
+            "usuario": "Guilherme",
+            "temperatura": temperatura,
+            "umidade": umidade,
+            "pressao": pressao,
+            "luminosidade": luminosidade,
+            "gas": gas_valor,
+            "cidade": "São Paulo",
+            "estado": "SP"
+        }
+
+        # Exibicao no Thonny
+        print("---------------------------")
+        print("Temperatura:", temperatura, "C")
+        print("Umidade:", umidade, "%")
+        print("Pressao:", pressao, "hPa")
+        print("Luminosidade:", luminosidade)
+        print("Gas MQ-135:", gas_valor)
+
+        # Envio para a API
+        resposta = urequests.post(
+            API_URL,
+            json=dados,
+            headers={"Content-Type": "application/json"}
         )
 
-        conexao.add(novo_registro)
-        conexao.commit()
-        conexao.refresh(novo_registro)
-
-        print(f"[SUCESSO] Registro salvo: ID {novo_registro.id}")
-
-        return {
-            "status": "sucesso",
-            "id_registro": novo_registro.id,
-            "mensagem": "Dados armazenados no PostgreSQL."
-        }
+        print("Resposta da API:", resposta.status_code)
+        resposta.close()
 
     except Exception as erro:
-        conexao.rollback()
-        print(f"[ERRO] {erro}")
+        print("Erro:", erro)
 
-        raise HTTPException(
-            status_code=500,
-            detail="Erro ao salvar dados no PostgreSQL."
-        )
+    time.sleep(5)
 
-    finally:
-        conexao.close()
-
-
-# ==========================================
-# 9. CONSULTAR HISTÓRICO
-# ==========================================
-
-@app.get("/api/clima/historico")
-def consultar_historico(usuario: str, limite: int = 50):
-
-    if usuario != "Guilherme":
-        raise HTTPException(
-            status_code=400,
-            detail="Perfil não encontrado."
-        )
-
-    if limite < 1 or limite > 1000:
-        raise HTTPException(
-            status_code=400,
-            detail="O limite deve estar entre 1 e 1000."
-        )
-
-    conexao = SessionLocal()
-
-    try:
-        registros = (
-            conexao.query(ModeloClimaHistorico)
-            .order_by(ModeloClimaHistorico.criado_em.desc())
-            .limit(limite)
-            .all()
-        )
-
-        return {
-            "status": "sucesso",
-            "quantidade": len(registros),
-            "dados": [
-                {
-                    "id": item.id,
-                    "temperatura": item.temperatura,
-                    "umidade": item.umidade,
-                    "pressao": item.pressao,
-                    "luminosidade": item.luminosidade,
-                    "gas": item.gas,
-                    "cidade": item.cidade,
-                    "estado": item.estado,
-                    "criado_em": item.criado_em.isoformat()
-                    if item.criado_em else None
-                }
-                for item in registros
-            ]
-        }
-
-    finally:
-        conexao.close()
