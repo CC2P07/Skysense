@@ -78,18 +78,35 @@ while True:
             print("Wi-Fi desconectado. Tentando reconectar...")
             perfil_ativo = conectar_wifi()
             
-        # Leituras dos sensores físicos
-        dht22.measure()
-        temperatura = dht22.temperature()
-        umidade = dht22.humidity()
+        # Leitura isolada do DHT22
+        try:
+            dht22.measure()
+            temperatura = dht22.temperature()
+            umidade = dht22.humidity()
+        except Exception as e:
+            print("Aviso: Falha na leitura do DHT22:", e)
+            temperatura = None
+            umidade = None
 
-        luminosidade = ldr.read()
-        gas_valor = gas.read()
+        # Leitura isolada das portas analógicas (LDR e Gás)
+        try:
+            luminosidade = ldr.read()
+        except Exception:
+            luminosidade = None
 
+        try:
+            gas_valor = gas.read()
+        except Exception:
+            gas_valor = None
+
+        # Leitura BMP280 (já possui tratamento, mas garantimos o None)
         if sensor_bmp is not None:
-            pressao = sensor_bmp.pressure
+            try:
+                pressao = sensor_bmp.pressure
+            except Exception:
+                pressao = None
         else:
-            pressao = 0.0
+            pressao = None
 
         # Exibição local no console do Thonny
         print("---------------------------")
