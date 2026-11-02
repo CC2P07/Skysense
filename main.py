@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
+from typing import Optional
 from sqlalchemy import create_engine, Column, Float, Integer, String, DateTime
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import URL
@@ -75,11 +76,11 @@ class ModeloClimaHistorico(Base):
 # ==================================
 class DadosClimaSchema(BaseModel):
     usuario: str
-    temperatura: float
-    umidade: float
-    pressao: float
-    luminosidade: int
-    gas: int
+    temperatura: Optional[float] = None
+    umidade: Optional[float] = None
+    pressao: Optional[float] = None
+    luminosidade: Optional[int] = None
+    gas: Optional[int] = None
     cidade: str
     estado: str
 
