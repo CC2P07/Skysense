@@ -6,74 +6,65 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import declarative_base
 from datetime import datetime
+import os
 
 # ==================================
 # CONFIGURACAO DA API
 # ==================================
 app = FastAPI(
     title="API Estacao Meteorologica SkySense",
-    description="Backend para recepcao e armazenamento de dados ambientais.",
-    version="2.3.0"
+    description="Backend unificado para recepcao e armazenamento de dados ambientais.",
+    version="3.0.0"
 )
 
 # ==================================
 # CONFIGURACAO DO POSTGRESQL
 # ==================================
-SKYSENSE_DB = {
-    "Guilherme": {
-        "url": URL.create(
-            "postgresql+psycopg2",
-            username="postgres",
-            password="Guiga@608925755",
-            host="localhost",
-            port=5432,
-            database="skysense_esp32"
-        ),
-        "cidade": "São Paulo",
-        "estado": "SP"
-    }
-}
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_USER = os.getenv("DB_USER", "postgres")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "Guiga@608925755")
+DB_NAME = os.getenv("DB_NAME", "skysense_esp32")
 
-# Motores e sessões otimizados com pool_pre_ping
-motores = {
-    usuario: create_engine(
-        dados["url"],
-        pool_pre_ping=True,
-        connect_args={"client_encoding": "utf8"}
-    )
-    for usuario, dados in SKYSENSE_DB.items()
-}
+# URL de conexão para o banco de dados 
+DATABASE_URL = URL.create(
+    "postgresql+psycopg2",
+    username=DB_USER,
+    password=DB_PASSWORD,
+    host=DB_HOST,
+    port=5432,
+    database=DB_NAME
+)
 
-sessoes_bd_usuario = {
-    usuario: sessionmaker(
-        bind=motor,
-        autoflush=False,
-        autocommit=False
-    )
-    for usuario, motor in motores.items()
-}
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    connect_args={"client_encoding": "utf8"}
+)
+
+SessionLocal = sessionmaker(
+    bind=engine,
+    autoflush=False,
+    autocommit=False
+)
 
 Base = declarative_base()
 
-# ==================================
-# MODELO DA TABELA
-# ==================================
+# MODELO DA TABELA 
 class ModeloClimaHistorico(Base):
     __tablename__ = "clima_historico"
 
     id = Column(Integer, primary_key=True, index=True)
-    temperatura = Column(Float)
-    umidade = Column(Float)
-    pressao = Column(Float)
-    luminosidade = Column(Integer)
-    gas = Column(Integer)
+    usuario = Column(String, nullable=False)
+    temperatura = Column(Float, nullable=True)
+    umidade = Column(Float, nullable=True)
+    pressao = Column(Float, nullable=True)
+    luminosidade = Column(Integer, nullable=True)
+    gas = Column(Integer, nullable=True)
     cidade = Column(String, nullable=False)
     estado = Column(String, nullable=False)
     criado_em = Column(DateTime, default=datetime.now)
 
-# ==================================
-# SCHEMA DOS DADOS RECEBIDOS
-# ==================================
+# FORMATO DADOS RECEBIDOS
 class DadosClimaSchema(BaseModel):
     usuario: str
     temperatura: Optional[float] = None
@@ -84,33 +75,21 @@ class DadosClimaSchema(BaseModel):
     cidade: str
     estado: str
 
-# ==================================
-# INICIALIZACAO DO BANCO (STARTUP)
-# ==================================
+# INICIALIZACAO DO BANCO 
 @app.on_event("startup")
 def iniciar_banco():
-    for usuario, motor in motores.items():
-        Base.metadata.create_all(bind=motor)
-    print("SkySense conectado ao banco de dados e tabelas verificadas!")
+    # Cria a tabela unificada automaticamente no banco central
+    Base.metadata.create_all(bind=engine)
+    print("SkySense conectado ao banco de dados unificado e tabela verificada!")
 
-# ==================================
 # ROTA POST - RECEBER DADOS
-# ==================================
 @app.post("/api/clima", status_code=status.HTTP_201_CREATED)
 def receber_dados(dados: DadosClimaSchema):
-    usuario = dados.usuario
-
-    if usuario not in sessoes_bd_usuario:
-        raise HTTPException(
-            status_code=400,
-            detail="Usuario nao configurado no servidor."
-        )
-
-    SessaoLocal = sessoes_bd_usuario[usuario]
-    conexao = SessaoLocal()
+    conexao = SessionLocal()
 
     try:
         novo_registro = ModeloClimaHistorico(
+            usuario=dados.usuario,
             temperatura=dados.temperatura,
             umidade=dados.umidade,
             pressao=dados.pressao,
@@ -124,11 +103,11 @@ def receber_dados(dados: DadosClimaSchema):
         conexao.commit()
         conexao.refresh(novo_registro)
 
-        print(f"[SUCESSO] Registro {novo_registro.id} recebido de {usuario}")
+        print(f"[SUCESSO] Registro {novo_registro.id} salvo para o usuário '{dados.usuario}'")
 
         return {
             "status": "sucesso",
-            "mensagem": "Dados armazenados com sucesso!",
+            "mensagem": "Dados armazenados com sucesso no banco unificado!",
             "id": novo_registro.id
         }
 
@@ -137,35 +116,31 @@ def receber_dados(dados: DadosClimaSchema):
         print("[ERRO NO BANCO]:", erro)
         raise HTTPException(
             status_code=500,
-            detail="Erro ao armazenar os dados."
+            detail="Erro ao armazenar os dados no banco unificado."
         )
     finally:
         conexao.close()
 
-# ==================================
 # ROTA GET - CONSULTAR HISTORICO
-# ==================================
 @app.get("/api/clima/historico")
-def consultar_historico(usuario: str, limite: int = 50):
-    if usuario not in sessoes_bd_usuario:
-        raise HTTPException(
-            status_code=400,
-            detail="Usuario nao encontrado."
-        )
-
+def consultar_historico(usuario: Optional[str] = None, limite: int = 50):
     if limite < 1 or limite > 1000:
         raise HTTPException(
             status_code=400,
             detail="O limite deve estar entre 1 e 1000."
         )
 
-    SessaoLocal = sessoes_bd_usuario[usuario]
-    conexao = SessaoLocal()
+    conexao = SessionLocal()
 
     try:
+        query = conexao.query(ModeloClimaHistorico)
+        
+        # Se um usuário específico for passado na query, filtra por ele; senão, traz geral
+        if usuario:
+            query = query.filter(ModeloClimaHistorico.usuario == usuario)
+
         registros = (
-            conexao.query(ModeloClimaHistorico)
-            .order_by(ModeloClimaHistorico.id.desc())
+            query.order_by(ModeloClimaHistorico.id.desc())
             .limit(limite)
             .all()
         )
@@ -174,6 +149,7 @@ def consultar_historico(usuario: str, limite: int = 50):
         for registro in registros:
             dados.append({
                 "id": registro.id,
+                "usuario": registro.usuario,
                 "temperatura": registro.temperatura,
                 "umidade": registro.umidade,
                 "pressao": registro.pressao,
