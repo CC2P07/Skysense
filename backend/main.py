@@ -8,18 +8,14 @@ from sqlalchemy.orm import declarative_base
 from datetime import datetime
 import os
 
-# ==================================
 # CONFIGURACAO DA API
-# ==================================
 app = FastAPI(
     title="API Estacao Meteorologica SkySense",
     description="Backend unificado para recepcao e armazenamento de dados ambientais.",
     version="3.0.0"
 )
 
-# ==================================
 # CONFIGURACAO DO POSTGRESQL
-# ==================================
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_USER = os.getenv("DB_USER", "postgres")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "Guiga@608925755")
