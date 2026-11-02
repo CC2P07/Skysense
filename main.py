@@ -10,8 +10,8 @@ import urequests
 # CONFIGURACAO DA REDE E DA API
 # ==================================
 
-WIFI_SSID = "FAMILIA @LMEIDA"
-WIFI_SENHA = "Amor@7854"
+WIFI_SSID = "WIFI"
+WIFI_SENHA = "SENHA"
 
 API_URL = "http://192.168.15.7:8000/api/clima"
 
