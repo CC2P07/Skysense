@@ -1,42 +1,79 @@
-from fastapi import FastAPI, Depends, HTTPException, status
-from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Float, Integer, String, DateTime
-from sqlalchemy.orm import sessionmaker, Session
-from datetime import datetime
-from sqlalchemy.ext.declarative import declarative_base
 
-app = FastAPI(
-    title="API Estação Meteorológica Skysense",
-    description="Backend multilocação para recepção de dados climáticos IoT.",
-    version="2.2.0"
+import os
+from datetime import datetime
+
+from fastapi import FastAPI, HTTPException, status
+from pydantic import BaseModel, Field
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Float,
+    Integer,
+    String,
+    DateTime,
+)
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.engine import URL
+from dotenv import load_dotenv
+
+# ==========================================
+# 1. CONFIGURAÇÃO DO AMBIENTE
+# ==========================================
+
+load_dotenv()
+
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = int(os.getenv("DB_PORT", "5432"))
+DB_NAME = os.getenv("DB_NAME")
+
+if not all([DB_USER, DB_PASSWORD, DB_NAME]):
+    raise RuntimeError("Configure DB_USER, DB_PASSWORD e DB_NAME no .env")
+
+DATABASE_URL = URL.create(
+    drivername="postgresql+psycopg2",
+    username=DB_USER,
+    password=DB_PASSWORD,
+    host=DB_HOST,
+    port=DB_PORT,
+    database=DB_NAME,
 )
 
-# 1. Dicionário de Bancos de Dados mantido exatamente no formato desejado
-SKYSENSE_DB = {
-    "Guilherme": {
-        "url": "postgresql://postgres:skysense%23%40%21%21%40%23%40@localhost:5432/esp_skysense",
-        "cidade": "São Paulo",
-        "estado": "SP"
-    }
-}
+# ==========================================
+# 2. CONEXÃO COM POSTGRESQL
+# ==========================================
 
-# Motores e sessões dinâmicos cacheados para otimizar performance
-motores = {
-    usuario: create_engine(dados["url"]) 
-    for usuario, dados in SKYSENSE_DB.items()
-}
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True
+)
 
-instancia_sessao_usuario = {
-    usuario: sessionmaker(bind=motor) 
-    for usuario, motor in motores.items()
-}
+SessionLocal = sessionmaker(
+    bind=engine,
+    autoflush=False,
+    autocommit=False
+)
 
 Base = declarative_base()
 
-# Definição completa da tabela com todos os sensores e geolocalização
+# ==========================================
+# 3. CONFIGURAÇÃO DA API
+# ==========================================
+
+app = FastAPI(
+    title="API Estação Meteorológica SkySense",
+    description="API para recebimento de dados dos sensores ESP32.",
+    version="2.3.0"
+)
+
+# ==========================================
+# 4. MODELO DA TABELA
+# ==========================================
+
 class ModeloClimaHistorico(Base):
     __tablename__ = "clima_historico"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     temperatura = Column(Float)
     umidade = Column(Float)
@@ -47,41 +84,62 @@ class ModeloClimaHistorico(Base):
     estado = Column(String, nullable=False)
     criado_em = Column(DateTime, default=datetime.now)
 
-# Schema Pydantic com nomenclatura descritiva em PT-BR (incluindo o usuário remetente)
+
+# ==========================================
+# 5. MODELO DOS DADOS RECEBIDOS
+# ==========================================
+
 class DadosClimaSchema(BaseModel):
     usuario: str
     temperatura: float
     umidade: float
     pressao: float
-    luminosidade: int
+    luminosidade: float
     gas: int
-    cidade: str
-    estado: str
+    cidade: str = "São Paulo"
+    estado: str = "SP"
+
+
+# ==========================================
+# 6. CRIAÇÃO AUTOMÁTICA DA TABELA
+# ==========================================
+
+@app.on_event("startup")
+def iniciar_banco():
+    Base.metadata.create_all(bind=engine)
+    print("[SUCESSO] Conectado ao PostgreSQL!")
+    print(f"[BANCO] {DB_NAME}")
+
+
+# ==========================================
+# 7. ROTA PRINCIPAL
+# ==========================================
+
+@app.get("/")
+def inicio():
+    return {
+        "projeto": "SkySense",
+        "status": "API funcionando",
+        "versao": "2.3.0"
+    }
+
+
+# ==========================================
+# 8. RECEBER E SALVAR DADOS DOS SENSORES
+# ==========================================
 
 @app.post("/api/clima", status_code=status.HTTP_201_CREATED)
-def receber_salvar_dados_climaticos(dados: DadosClimaSchema):
-    """
-    Recebe o pacote do ESP32, valida o usuário remetente no dicionário SKYSENSE_DB,
-    e persiste todos os dados ambientais com geolocalização no PostgreSQL correspondente.
-    """
-    usuario_remetente = dados.usuario
-    
-    # Valida se o perfil/usuário remetente possui banco configurado
-    if usuario_remetente not in instancia_sessao_usuario:
+def receber_salvar_dados(dados: DadosClimaSchema):
+
+    if dados.usuario != "Guilherme":
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"O perfil '{usuario_remetente}' não possui um banco de dados mapeado no servidor."
+            status_code=400,
+            detail="Perfil de usuário não encontrado."
         )
-    
-    # Seleciona a fábrica de sessão específica daquele perfil
-    SessaoLocal = instancia_sessao_usuario[usuario_remetente]
-    conexao_banco = SessaoLocal()
-    
+
+    conexao = SessionLocal()
+
     try:
-        # Garante que a tabela existe no banco de dados do perfil
-        Base.metadata.create_all(bind=motores[usuario_remetente])
-        
-        # Instancia o registro mapeando TODOS os campos enviados
         novo_registro = ModeloClimaHistorico(
             temperatura=dados.temperatura,
             umidade=dados.umidade,
@@ -91,54 +149,80 @@ def receber_salvar_dados_climaticos(dados: DadosClimaSchema):
             cidade=dados.cidade,
             estado=dados.estado
         )
-        
-        conexao_banco.add(novo_registro)
-        conexao_banco.commit()
-        conexao_banco.refresh(novo_registro)
-        
-        print(f"[SUCESSO] Dados salvos para o perfil '{usuario_remetente}'. ID: {novo_registro.id}")
-        
+
+        conexao.add(novo_registro)
+        conexao.commit()
+        conexao.refresh(novo_registro)
+
+        print(f"[SUCESSO] Registro salvo: ID {novo_registro.id}")
+
         return {
             "status": "sucesso",
-            "codigo_http": 201,
-            "mensagem": f"Dados meteorológicos de {dados.cidade}/{dados.estado} armazenados com êxito.",
             "id_registro": novo_registro.id,
-            "perfil": usuario_remetente
+            "mensagem": "Dados armazenados no PostgreSQL."
         }
-        
-    except Exception as erro:
-        conexao_banco.rollback()
-        print(f"[ERRO NO BANCO] Falha ao persistir: {erro}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erro interno ao gravar dados no PostgreSQL: {str(erro)}"
-        )
-    finally:
-        conexao_banco.close()
 
-# Rota GET preparada previamente para o Dashboard
-@app.get("/api/clima/historico", status_code=status.HTTP_200_OK)
-def consultar_historico_clima(usuario: str, limite: int = 50):
-    """
-    Retorna o histórico de registros filtrado por perfil/usuário para exibição em painéis.
-    """
-    if usuario not in instancia_sessao_usuario:
-        raise HTTPException(status_code=400, detail="Perfil de usuário não encontrado.")
-        
-    SessaoLocal = instancia_sessao_usuario[usuario]
-    conexao_banco = SessaoLocal()
-    
+    except Exception as erro:
+        conexao.rollback()
+        print(f"[ERRO] {erro}")
+
+        raise HTTPException(
+            status_code=500,
+            detail="Erro ao salvar dados no PostgreSQL."
+        )
+
+    finally:
+        conexao.close()
+
+
+# ==========================================
+# 9. CONSULTAR HISTÓRICO
+# ==========================================
+
+@app.get("/api/clima/historico")
+def consultar_historico(usuario: str, limite: int = 50):
+
+    if usuario != "Guilherme":
+        raise HTTPException(
+            status_code=400,
+            detail="Perfil não encontrado."
+        )
+
+    if limite < 1 or limite > 1000:
+        raise HTTPException(
+            status_code=400,
+            detail="O limite deve estar entre 1 e 1000."
+        )
+
+    conexao = SessionLocal()
+
     try:
         registros = (
-            conexao_banco.query(ModeloClimaHistorico)
+            conexao.query(ModeloClimaHistorico)
             .order_by(ModeloClimaHistorico.criado_em.desc())
             .limit(limite)
             .all()
         )
+
         return {
             "status": "sucesso",
             "quantidade": len(registros),
-            "dados": registros
+            "dados": [
+                {
+                    "id": item.id,
+                    "temperatura": item.temperatura,
+                    "umidade": item.umidade,
+                    "pressao": item.pressao,
+                    "luminosidade": item.luminosidade,
+                    "gas": item.gas,
+                    "cidade": item.cidade,
+                    "estado": item.estado,
+                    "criado_em": item.criado_em.isoformat()
+                    if item.criado_em else None
+                }
+                for item in registros
+            ]
         }
+
     finally:
-        conexao_banco.close()
+        conexao.close()
