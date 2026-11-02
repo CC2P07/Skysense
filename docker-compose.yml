@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: skysense_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Guiga@608925755
+      POSTGRES_DB: skysense_esp32
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - skysense-net
+
+  # 2. FastAPI
+  backend:
+    build: ./backend
+    container_name: skysense_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=Guiga@608925755
+      - DB_NAME=skysense_esp32
+    depends_on:
+      - db
+    networks:
+      - skysense-net
+
+  frontend:
+    image: nginx:alpine
+    container_name: skysense_frontend
+    restart: always
+    ports:
+      - "3000:80"
+    volumes:
+      # Mapeia os arquivos estáticos (HTML/CSS/JS) diretamente para o Nginx
+      - ./frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+    networks:
+      - skysense-net
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  skysense-net:
+    driver: bridge
