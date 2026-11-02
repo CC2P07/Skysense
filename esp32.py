@@ -1,17 +1,20 @@
+
 from machine import Pin, ADC, I2C
 import dht
 import time
 import network
 import urequests
+import ujson
 from bmp280 import BMP280
 
 # ==================================
-# CONFIGURACAO DE PERFIS DE REDE E API
+# CONFIGURACAO DA REDE E DA API
 # ==================================
+
 CONFIGURACAO = [
     {
         "nome": "Guilherme",
-        "ssid": "FAMILIA @LMEIDA",
+        "ssid": "ALEMIDA @LMEIDA",
         "senha": "Amor@7854",
         "api_url": "http://192.168.15.7:8000/api/clima",
         "cidade": "São Paulo",
@@ -19,80 +22,110 @@ CONFIGURACAO = [
     }
 ]
 
+# ==================================
+# CONEXAO WIFI
+# ==================================
+
 def conectar_wifi():
-    modo_station = network.WLAN(network.STA_IF)
-    modo_station.active(True)
-    
+    wifi = network.WLAN(network.STA_IF)
+    wifi.active(True)
+
     for perfil in CONFIGURACAO:
-        print(f"Tentando conectar em: {perfil['nome']} ({perfil['ssid']})...")
-        modo_station.connect(perfil["ssid"], perfil["senha"])
-    
+        print("Conectando em:", perfil["ssid"])
+
+        if wifi.isconnected():
+            wifi.disconnect()
+            time.sleep(1)
+
+        wifi.connect(perfil["ssid"], perfil["senha"])
+
         tentativas = 0
-        while not modo_station.isconnected() and tentativas < 10:
+
+        while not wifi.isconnected() and tentativas < 15:
+            print("Aguardando Wi-Fi...")
             time.sleep(1)
             tentativas += 1
-            
-        if modo_station.isconnected():
-            print(f"Sucesso! Conectado à rede de: {perfil['nome']}")
-            print("IP da placa:", modo_station.ifconfig()[0])
-            return perfil 
-            
-    print("Aviso: Nenhuma rede conhecida foi encontrada!")
+
+        if wifi.isconnected():
+            print("Wi-Fi conectado!")
+            print("IP do ESP32:", wifi.ifconfig()[0])
+            return perfil
+
+    print("Nenhuma rede encontrada.")
     return None
+
 
 # ==================================
 # CONFIGURACAO DOS SENSORES
 # ==================================
+
 dht22 = dht.DHT22(Pin(4))
+
 ldr = ADC(Pin(35))
 ldr.atten(ADC.ATTN_11DB)
+
 gas = ADC(Pin(34))
 gas.atten(ADC.ATTN_11DB)
 
+# BMP280
 i2c = I2C(0, scl=Pin(22), sda=Pin(21), freq=100000)
 
 try:
     sensor_bmp = BMP280(i2c)
-    print("BMP280 inicializado com sucesso!")
-except Exception as e:
+    print("BMP280 inicializado!")
+except Exception as erro:
     sensor_bmp = None
-    print("Aviso: BMP280 não detectado:", e)
+    print("BMP280 indisponivel:", erro)
+
+
+# ==================================
+# INICIALIZACAO
+# ==================================
+
+perfil_ativo = conectar_wifi()
 
 print("Monitoramento SkySense iniciado!")
 
-# Inicializa o perfil de conexão antes de entrar no loop principal
-perfil_ativo = conectar_wifi()
+# ==================================
+# ENVIO DOS DADOS
+# ==================================
 
 while True:
+
     try:
-        modo_station = network.WLAN(network.STA_IF)
-        if not modo_station.isconnected() or perfil_ativo is None:
-            print("Wi-Fi desconectado. Tentando reconectar...")
+        # Verifica a conexao Wi-Fi
+        wifi = network.WLAN(network.STA_IF)
+
+        if not wifi.isconnected() or perfil_ativo is None:
+            print("Reconectando Wi-Fi...")
             perfil_ativo = conectar_wifi()
-            
-        # Leituras dos sensores físicos
+
+        # Leitura DHT22
         dht22.measure()
         temperatura = dht22.temperature()
         umidade = dht22.humidity()
 
+        # Leituras analogicas
         luminosidade = ldr.read()
         gas_valor = gas.read()
 
+        # Leitura BMP280
         if sensor_bmp is not None:
             pressao = sensor_bmp.pressure
         else:
             pressao = 0.0
 
-        # Exibição local no console do Thonny
+        # Exibicao no Thonny
         print("---------------------------")
-        print("Temperatura:", temperatura, "°C")
+        print("Temperatura:", temperatura, "C")
         print("Umidade:", umidade, "%")
         print("Pressao:", pressao, "Pa")
         print("Luminosidade:", luminosidade)
         print("Gas MQ-135:", gas_valor)
 
-        # Montagem do payload unificado compatível com o schema do main.py[cite: 3, 6]
-        if perfil_ativo:
+        # Montagem dos dados
+        if perfil_ativo is not None:
+
             dados = {
                 "usuario": perfil_ativo["nome"],
                 "temperatura": temperatura,
@@ -103,22 +136,30 @@ while True:
                 "cidade": perfil_ativo["cidade"],
                 "estado": perfil_ativo["estado"]
             }
-            
-            cabecalhos = {'Content-Type': 'application/json'}
 
-            # Envio POST para a API do FastAPI[cite: 3, 6]
+            print("Enviando dados para a API...")
+            print(ujson.dumps(dados))
+
+            # Envio HTTP POST
             resposta = urequests.post(
-                perfil_ativo["api_url"], 
-                json=dados, 
-                headers=cabecalhos
+                perfil_ativo["api_url"],
+                data=ujson.dumps(dados),
+                headers={
+                    "Content-Type": "application/json"
+                }
             )
-            
-            print("Resposta da API (Status HTTP):", resposta.status_code)
+
+            print("Status HTTP:", resposta.status_code)
+            print("Resposta:", resposta.text)
+
             resposta.close()
+
         else:
-            print("Aviso: Sem conexão Wi-Fi ativa para envio.")
+            print("Sem Wi-Fi. Dados nao enviados.")
 
     except Exception as erro:
-        print("Erro crítico no ciclo:", erro)
+        print("Erro no ciclo:", erro)
 
+    # Intervalo entre leituras
     time.sleep(60)
+
