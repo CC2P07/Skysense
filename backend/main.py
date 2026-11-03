@@ -48,14 +48,13 @@ Base = declarative_base()
 # MODELO DA TABELA 
 class ModeloClimaHistorico(Base):
     __tablename__ = "clima_historico"
-
     id = Column(Integer, primary_key=True, index=True)
-    usuario = Column(String, nullable=False)
-    temperatura = Column(Float, nullable=True)
-    umidade = Column(Float, nullable=True)
-    pressao = Column(Float, nullable=True)
-    luminosidade = Column(Integer, nullable=True)
-    gas = Column(Integer, nullable=True)
+    temperatura = Column(Float)
+    umidade = Column(Float)
+    pressao = Column(Float)
+    altitude = Column(Float)
+    luminosidade = Column(Integer)
+    gas = Column(Integer)
     cidade = Column(String, nullable=False)
     estado = Column(String, nullable=False)
     criado_em = Column(DateTime, default=datetime.now)
@@ -66,6 +65,7 @@ class DadosClimaSchema(BaseModel):
     temperatura: Optional[float] = None
     umidade: Optional[float] = None
     pressao: Optional[float] = None
+    altitude: Optional[float] = None
     luminosidade: Optional[int] = None
     gas: Optional[int] = None
     cidade: str
@@ -85,10 +85,10 @@ def receber_dados(dados: DadosClimaSchema):
 
     try:
         novo_registro = ModeloClimaHistorico(
-            usuario=dados.usuario,
             temperatura=dados.temperatura,
             umidade=dados.umidade,
             pressao=dados.pressao,
+            altitude=dados.altitude,
             luminosidade=dados.luminosidade,
             gas=dados.gas,
             cidade=dados.cidade,
