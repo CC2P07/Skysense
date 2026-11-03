@@ -109,6 +109,7 @@ while True:
         print("Temperatura:", temperatura, "°C")
         print("Umidade:", umidade, "%")
         print("Pressao:", pressao, "Pa")
+        print("Altitude:", altitude, "m")
         print("Luminosidade:", luminosidade)
         print("Gas MQ-135:", gas_valor)
 
