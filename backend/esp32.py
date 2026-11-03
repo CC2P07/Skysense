@@ -6,9 +6,7 @@ import urequests
 import ujson
 from bmp280 import BMP280
 
-# ==================================
 # CONFIGURACAO DE PERFIS DE REDE E API
-# ==================================
 CONFIGURACAO = [
     {
         "nome": "Guilherme",
@@ -49,9 +47,7 @@ def conectar_wifi():
     print("Aviso: Nenhuma rede conhecida foi encontrada!")
     return None
 
-# ==================================
 # CONFIGURACAO DOS SENSORES
-# ==================================
 dht22 = dht.DHT22(Pin(4))
 ldr = ADC(Pin(35))
 ldr.atten(ADC.ATTN_11DB)
@@ -78,7 +74,6 @@ while True:
             print("Wi-Fi desconectado. Tentando reconectar...")
             perfil_ativo = conectar_wifi()
             
-        # Leitura isolada do DHT22
         try:
             dht22.measure()
             temperatura = dht22.temperature()
@@ -88,7 +83,6 @@ while True:
             temperatura = None
             umidade = None
 
-        # Leitura isolada das portas analógicas (LDR e Gás)
         try:
             luminosidade = ldr.read()
         except Exception:
@@ -99,14 +93,16 @@ while True:
         except Exception:
             gas_valor = None
 
-        # Leitura BMP280 (já possui tratamento, mas garantimos o None)
         if sensor_bmp is not None:
             try:
                 pressao = sensor_bmp.pressure
+                altitude = 44330 * (1.0 - pow(pressao / 101325.0, 0.1903))
             except Exception:
                 pressao = None
+                altitude = None
         else:
             pressao = None
+            altitude = None
 
         # Exibição local no console do Thonny
         print("---------------------------")
@@ -123,6 +119,7 @@ while True:
                 "temperatura": temperatura,
                 "umidade": umidade,
                 "pressao": pressao,
+                "altitude": altitude,
                 "luminosidade": luminosidade,
                 "gas": gas_valor,
                 "cidade": perfil_ativo["cidade"],
