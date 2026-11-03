@@ -1,0 +1,400 @@
+:root {
+    --azul-claro: #eaf7ff;
+    --azul: #95d2f3;
+    --azul-medio: #4da9dc;
+    --azul-escuro: #287db4;
+    --texto: #1d3550;
+    --texto-suave: #73889a;
+    --branco: #ffffff;
+    --amarelo: #ffe798;
+    --borda: #d4e7f2;
+    --sombra: 0 12px 30px rgba(43, 112, 157, .08); 
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 100px;
+}
+
+body {
+    margin: 0;
+    color: var(--texto);
+    background: var(--azul-claro);
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.6;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+p {
+    color: var(--texto-suave);
+}
+
+.cabecalho {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    min-height: 78px;
+    padding: 15px 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    background: rgba(234, 247, 255, .95);
+    border-bottom: 1px solid var(--borda);
+    backdrop-filter: blur(12px);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo strong,
+.logo small {
+    display: block;
+}
+
+.logo strong{
+    font-size: 21px;
+}
+
+.logo small{
+    color: var(--texto-suave);
+    font-size: 11px;
+}
+
+.icone-logo{
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--borda);
+    border-radius: 50%;
+    background:white;
+    color: var(--azul-escuro);
+    font-size: 26px;
+}
+
+.cabecalho nav{
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.cabecalho nav a{
+    font-size: 13px;
+    color:  var(--texto-suave);
+}
+
+.cabecalho nav a:hover{
+    color:var(--azul-escuro);
+}
+
+.botao-dashboard,
+.botao{
+    display: inline-block;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    background: var(--azul-escuro);
+    color: white !important;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform .2s, background .2s;
+}
+
+.botao:hover,
+.botao-dashboard:hover{
+    background: #1d6595;
+    transform: translateY(-2px);
+}
+
+.menu-toggle{
+    display: none;
+    border: 0;
+    background: transparent;
+    color: var(--texto);
+    font-size: 25px;
+}
+
+.botao.botao-claro {
+    background: var(--azul-claro);
+    color: #287db4 !important;
+}
+
+
+.hero {
+    position: relative;
+    overflow: hidden;
+    width: 90%;
+    min-height: 500px;
+    margin: 28px auto;
+    padding: 65px 7%;
+    display: grid;
+    grid-template-columns: 1.4fr 0.8fr;
+    align-items: center;
+    gap: 40px;
+    border-radius: 28px;
+    background: linear-gradient(
+        145deg,
+        #c5e7fb,
+        #95d2f3 45%,
+        #4da9dc
+    );
+}
+.ceu {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.sol {
+    position: absolute;
+    top: -65px;
+    right: -25px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        #fff4c1,
+        #ffe798 65%,
+        transparent 72%
+    );
+}
+
+.nuvem {
+    position: absolute;
+    width: 100px;
+    height: 36px;
+    border-radius: 50px;
+    background: #ffffffa6;
+}
+
+.nuvem::before,
+.nuvem::after {
+    content: "";
+    position: absolute;
+    bottom: 10px;
+    border-radius: 50%;
+    background: inherit;
+}
+
+.nuvem::before {
+    left: 20px;
+    width: 45px;
+    height: 45px;
+}
+
+.nuvem::after {
+    right: 15px;
+    width: 38px;
+    height: 38px;
+}
+
+.nuvem1 {
+    top: 80px;
+    left: 48%;
+}
+
+.nuvem2 {
+    top: 150px;
+    left: 7%;
+    transform: scale(0.75);
+}
+
+.hero-texto,
+.cartao-temperatura,
+.banner-conteudo {
+    position: relative;
+    z-index: 1;
+}
+
+.etiqueta {
+    display: block;
+    color: #287db4;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1.2px;
+}
+
+.hero h1 {
+    margin: 18px 0;
+    font-size: clamp(32px, 4vw, 52px);
+    line-height: 1.1;
+}
+
+.hero h1 span {
+    display: block;
+    color: #287db4;
+}
+
+.hero-texto p {
+    max-width: 530px;
+    color: #345b76;
+}
+
+.acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.cartao-temperatura {
+    padding: 30px;
+    border: 1px solid #ffffffb3;
+    border-radius: 22px;
+    background: #ffffffe0;
+    box-shadow: 0 12px 30px #2b709d14;
+}
+
+.cartao-temperatura h2 {
+    margin: 25px 0 0;
+    font-size: 54px;
+}
+
+.cartao-temperatura h2 small {
+    font-size: 20px;
+}
+
+.cartao-temperatura p {
+    color: #1d3550;
+    font-weight: bold;
+}
+
+.cartao-temperatura > small {
+    color: #73889a;
+}
+
+.apresentacao {
+    width: 90%;
+    max-width: 1200px;
+    margin: 75px auto;
+}
+
+.apresentacao > h2,
+.chamada-dashboard h2 {
+    margin: 8px 0 16px;
+    font-size: clamp(27px, 3vw, 38px);
+}
+
+.apresentacao > p {
+    max-width: 780px;
+}
+
+.grade {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    margin-top: 28px;
+}
+
+.cartao, 
+.cartao-texto {
+    padding: 26px;
+    border: 1px solid #d4e7f2;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 12px 30px #2b709d14;
+}
+
+.cartao h2,
+.cartao h3 {
+    margin: 12px 0 6px;
+}
+
+.cartao p {
+    margin-bottom: 0;
+}
+
+.tabela-responsiva {
+    width: 100%;
+    margin-top: 28px;
+    overflow-x: auto;
+    border: 1px solid var(--borda);
+    border-radius: 18px;
+    background: var(--branco);
+    box-shadow: var(--sombra);
+}
+
+.tabela-ferramentas {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.tabela-ferramentas th {
+    padding: 18px 20px;
+    background: #d8efff;
+    color: var(--texto);
+    font-size: 14px;
+    font-weight: bold;
+    border-bottom: 1px solid var(--borda);
+}
+
+.tabela-ferramentas td {
+    padding: 18px 20px;
+    color: var(--texto-suave);
+    font-size: 14px;
+    border-bottom: 1px solid var(--borda);
+    line-height: 1.6;
+}
+
+.tabela-ferramentas td:first-child {
+    color: var(--texto);
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.tabela-ferramentas tr:last-child td {
+    border-bottom: none;
+}
+
+.tabela-ferramentas tbody tr:hover {
+    background: var(--azul-claro);
+}
+
+.icone {
+    color: #287db4;
+    font-size: 27px;
+}
+
+.sensores {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.reservado {
+    min-height: 100px;
+    padding: 25px;
+    border: 1px dashed #b6d8ed;
+    border-radius: 18px;
+    background: #ffffff4d;
+}
+
+.chamada-dashboard {
+    width: 90%;
+    margin: 70px auto;
+    padding: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+    border-radius: 22px;
+    background: #d8efff;
+}
+
+.chamada-dashboard p {
+    margin-bottom: 0;
+}

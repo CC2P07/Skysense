@@ -1,0 +1,327 @@
+/* ===================================================
+   VARIÁVEIS DE COR E ESTILO (design tokens)
+   Mudar uma cor aqui atualiza o site inteiro, já que
+   todo o CSS abaixo usa var(--nome-da-variavel)
+=================================================== */
+:root{
+    --bg:#EAF6FF;
+    --bg-soft:#F5FBFF;
+    --card:#FFFFFF;
+    --line:#CFE8FB;
+    --blue-deep:#0B5FA5;
+    --blue-mid:#2F9BDB;
+    --blue-pale:#BEE3F8;
+    --blue-glow:#E3F4FF;
+    --ink:#123049;
+    --ink-soft:#547089;
+    --teal:#1E9C8B;
+    --amber:#DB9A32;
+    --radius-lg:28px;
+    --radius-md:18px;
+    --radius-sm:12px;
+    --shadow:0 12px 30px -18px rgba(11,95,165,.35);   /* sombra suave dos cartões */
+  }
+  /* Reset básico + estilo geral do corpo da página */
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.num,.tab,.brand{font-family:'Space Grotesk',sans-serif;} /* fonte usada nos títulos e números grandes */
+  .page{max-width:1180px;margin:0 auto;padding:0 24px 80px;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  :focus-visible{outline:3px solid var(--blue-mid);outline-offset:3px;border-radius:6px;}
+
+  /* ===================================================
+     HERO: o banner azul do topo (nuvens, sol, temperatura
+     grande e resumo). Ver <header class="hero"> no HTML
+  =================================================== */
+  .hero{
+    position:relative;
+    overflow:hidden;
+    margin:24px 0 32px;
+    padding:40px 40px 34px;
+    border-radius:var(--radius-lg);
+    background:linear-gradient(180deg,#CDEBFF 0%, #8FCBF2 55%, #4FA6DB 100%);
+    color:#fff;
+    isolation:isolate;
+  }
+  /* Brilho de sol no canto: um círculo com gradiente radial que pulsa (ver @keyframes pulse) */
+  .hero .sun{
+    position:absolute;
+    top:-70px;right:-40px;
+    width:230px;height:230px;
+    border-radius:50%;
+    background:radial-gradient(circle at 40% 40%, #FFF6D8, #FFE49B 45%, rgba(255,228,155,0) 72%);
+    filter:blur(1px);
+    animation:pulse 7s ease-in-out infinite;
+    z-index:0;
+  }
+  /* Animação do sol: aumenta e diminui de tamanho devagar, em loop */
+  @keyframes pulse{
+    0%,100%{transform:scale(1);opacity:.9;}
+    50%{transform:scale(1.06);opacity:1;}
+  }
+  /* Nuvens brancas que atravessam o hero de forma contínua (ver @keyframes drift) */
+  .cloud{
+    position:absolute;
+    z-index:0;
+    opacity:.85;
+    animation:drift linear infinite;
+  }
+  .cloud svg{display:block;width:100%;height:100%;}
+  .cloud.c1{width:170px;top:30px;left:-40px;animation-duration:48s;}
+  .cloud.c2{width:120px;top:90px;left:30%;animation-duration:65s;animation-delay:-20s;opacity:.65;}
+  .cloud.c3{width:150px;top:15px;left:60%;animation-duration:55s;animation-delay:-10s;opacity:.5;}
+  /* Animação das nuvens: andam da esquerda pra direita e reiniciam */
+  @keyframes drift{
+    from{transform:translateX(-10%);}
+    to{transform:translateX(115vw);}
+  }
+  /* Respeita quem prefere menos animação no sistema: desliga nuvens/sol */
+  @media (prefers-reduced-motion:reduce){
+    .cloud,.hero .sun,.count-up{animation:none !important;}
+  }
+  /* Linha de cima do hero: logotipo à esquerda, data/hora à direita */
+  .hero-top{
+    position:relative;z-index:1;
+    display:flex;justify-content:space-between;align-items:flex-start;
+    gap:16px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .mark{
+    width:34px;height:34px;flex:none;
+  }
+  .brand-text{font-size:24px;font-weight:600;letter-spacing:.2px;}
+  .tagline{margin:4px 0 0;font-size:14px;color:rgba(255,255,255,.9);font-weight:500;}
+  .datetime{text-align:right;font-size:13px;color:rgba(255,255,255,.92);}
+  .datetime .day{font-weight:600;font-size:14px;}
+
+  /* Linha principal do hero: temperatura grande + condição + resumo dos sensores */
+  .hero-main{
+    position:relative;z-index:1;
+    display:flex;align-items:flex-end;gap:28px;margin-top:34px;flex-wrap:wrap;
+  }
+  .hero-temp{display:flex;align-items:center;gap:16px;}
+  .hero-temp .icon{width:64px;height:64px;flex:none;}
+  .hero-temp .num{font-size:72px;font-weight:600;line-height:1;}
+  .hero-temp .num sup{font-size:.4em;font-weight:600;}
+  .hero-cond{font-size:16px;font-weight:500;margin-top:6px;color:rgba(255,255,255,.95);}
+  .hero-stats{display:flex;gap:26px;flex-wrap:wrap;margin-left:auto;padding-bottom:8px;}
+  .hero-stat{font-size:13px;color:rgba(255,255,255,.9);}
+  .hero-stat .v{display:block;font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;color:#fff;}
+
+  /* ===================================================
+     MENU DE ABAS (navegação entre "Visão geral" e cada
+     sensor). Ver <nav class="tabs"> no HTML e a lógica
+     de troca de aba em script.js (activateTab)
+  =================================================== */
+  .tabs{
+    display:flex;gap:4px;overflow-x:auto;
+    border-bottom:1px solid var(--line);
+    margin-bottom:32px;
+    scrollbar-width:none;
+  }
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{
+    flex:none;
+    background:none;border:none;cursor:pointer;
+    padding:12px 16px 14px;
+    font-size:14.5px;font-weight:600;
+    color:var(--ink-soft);
+    border-bottom:3px solid transparent;
+    transition:color .15s ease, border-color .15s ease;
+    display:flex;align-items:center;gap:8px;
+  }
+  .tab svg{width:18px;height:18px;opacity:.75;}
+  .tab:hover{color:var(--blue-deep);}
+  .tab[aria-selected="true"]{color:var(--blue-deep);border-color:var(--blue-deep);}
+
+  /* ===================================================
+     PAINÉIS (as <section> que o menu de abas mostra/esconde).
+     Só o painel com a classe .active fica visível
+  =================================================== */
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;animation:fadein .25s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+  .section-head h2{margin:0;font-size:20px;font-weight:600;}
+  .section-head p{margin:2px 0 0;color:var(--ink-soft);font-size:14px;}
+
+  /* ===================================================
+     GRADE DA VISÃO GERAL: 6 colunas onde cada cartão ocupa
+     uma largura diferente (o de temperatura é maior, o de
+     chuva é largura total) — dá a sensação de hierarquia
+  =================================================== */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:18px;
+  }
+  /* Estilo base de todo cartão de sensor */
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:20px;
+    box-shadow:var(--shadow);
+    display:flex;flex-direction:column;gap:10px;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .card:hover, .card:focus-visible{transform:translateY(-3px);box-shadow:0 16px 34px -16px rgba(11,95,165,.42);}
+  .card-feature{grid-column:span 3;grid-row:span 2;border-radius:var(--radius-lg);background:linear-gradient(160deg,#fff 60%, var(--blue-glow));} /* cartão grande: temperatura/umidade */
+  .card-wide{grid-column:span 6;} /* cartão de largura total: chuva */
+  .card-reg{grid-column:span 3;} /* cartões regulares: pressão, ar, LDR, lux */
+  .card-wide{grid-column:span 6;}
+  .card-reg{grid-column:span 3;}
+  @media (min-width:760px){
+    .card-reg{grid-column:span 2;}
+  }
+  .card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .card-icon{width:40px;height:40px;flex:none;}
+  .card-feature .card-icon{width:52px;height:52px;}
+  .card-label{font-size:13px;font-weight:600;color:var(--ink-soft);}
+  .card-value{font-size:15px;font-weight:600;color:var(--ink-soft);}
+  .card .num{font-size:36px;font-weight:600;}
+  .card-feature .num{font-size:48px;}
+  .card-sub{font-size:13px;color:var(--ink-soft);}
+  /* "Selinho" colorido de status (ex.: Bom / Moderado / Ruim na qualidade do ar) */
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;
+    background:var(--blue-glow);color:var(--blue-deep);width:fit-content;
+  }
+  .badge.warn{background:#FBEBD2;color:#9C6A16;}
+  .badge.ok{background:#DEF3EC;color:var(--teal);}
+  /* Mini-gráfico (sparkline) dentro de cada cartão da visão geral */
+  .spark{width:100%;height:46px;}
+  .card-feature .spark{height:64px;}
+  .feature-pair{display:flex;gap:26px;margin-top:2px;}
+  .feature-pair div{flex:1;}
+  .feature-pair .num{font-size:34px;}
+  .feature-pair .card-label{margin-bottom:2px;}
+
+  /* ===================================================
+     LAYOUT DAS ABAS DETALHADAS: coluna da esquerda com
+     informações do sensor (.detail-info) e coluna da
+     direita com o gráfico histórico (.detail-chart)
+  =================================================== */
+  .detail{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start;}
+  @media (max-width:820px){.detail{grid-template-columns:1fr;}}
+  /* Cartão da esquerda: ícone, valor grande, descrição e linhas de referência */
+  .detail-info{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:26px;box-shadow:var(--shadow);
+  }
+  .detail-info .icon-lg{width:56px;height:56px;margin-bottom:14px;}
+  .detail-info .num{font-size:52px;font-weight:600;margin:6px 0 2px;}
+  .detail-info .unit-label{color:var(--ink-soft);font-size:14px;margin-bottom:18px;}
+  .detail-info h3{font-size:15px;margin:18px 0 6px;}
+  .detail-info p{font-size:14px;color:var(--ink-soft);margin:0 0 14px;}
+  .meta-row{display:flex;justify-content:space-between;font-size:13px;padding:9px 0;border-top:1px solid var(--line);}
+  .meta-row:first-of-type{border-top:none;}
+  .meta-row span:first-child{color:var(--ink-soft);}
+  .meta-row span:last-child{font-weight:600;}
+
+  /* Cartão da direita: botões de período (6h/24h/7 dias) + gráfico do Chart.js */
+  .detail-chart{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:22px 22px 10px;box-shadow:var(--shadow);
+  }
+  .range-toggle{display:flex;gap:6px;margin-bottom:14px;}
+  .range-toggle button{
+    border:1px solid var(--line);background:var(--bg-soft);color:var(--ink-soft);
+    font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:999px;cursor:pointer;
+    transition:all .15s ease;
+  }
+  .range-toggle button[aria-pressed="true"]{background:var(--blue-deep);color:#fff;border-color:var(--blue-deep);}
+  .chart-wrap{height:300px;}
+
+  /* Rodapé: mostra a fonte dos dados (simulado ou ESP32 real) e a hora da última atualização */
+  footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  footer .dot{color:var(--blue-mid);}
+
+  /* Ajustes para telas pequenas (celular): reduz espaçamentos e simplifica a grade para 2 colunas */
+  @media (max-width:640px){
+    .hero{padding:28px 22px 26px;}
+    .hero-temp .num{font-size:54px;}
+    .hero-stats{margin-left:0;}
+    .grid{grid-template-columns:repeat(2,1fr);}
+    .card-feature{grid-column:span 2;}
+    .card-wide{grid-column:span 2;}
+    .card-reg{grid-column:span 2;}
+    .page{padding:0 16px 60px;}
+  }
+
+
+/* Navegação principal entre o Dashboard e a apresentação do projeto */
+.site-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 4px;
+}
+.site-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--blue-deep);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.site-nav-mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--card);
+  font-size: 22px;
+}
+.site-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.site-nav-links a {
+  padding: 9px 15px;
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background .15s ease, color .15s ease;
+}
+.site-nav-links a:hover {
+  background: var(--blue-glow);
+  color: var(--blue-deep);
+}
+.site-nav-links a[aria-current="page"] {
+  background: var(--blue-deep);
+  color: #fff;
+}
+@media (max-width: 640px) {
+  .site-nav {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 12px 0;
+  }
+  .site-nav-links {
+    width: 100%;
+  }
+  .site-nav-links a {
+    padding: 8px 13px;
+  }
+}

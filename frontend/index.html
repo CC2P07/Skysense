@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<!-- Configuração básica da página: codificação de caracteres e responsividade -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkySense | Dashboard meteorológico</title>
+
+<!-- Fontes usadas no site: Space Grotesk (títulos/números) e Inter (textos) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<!-- Biblioteca Chart.js: desenha todos os gráficos de linha do site -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
+<!-- Todo o visual (cores, layout, animações) fica em style.css -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <nav class="site-nav" aria-label="Navegação principal">
+    <a class="site-nav-brand" href="index.html">
+      <span class="site-nav-mark" aria-hidden="true">☼</span>
+      <span>SkySense</span>
+    </a>
+    <div class="site-nav-links">
+      <a href="index.html" aria-current="page">Dashboard</a>
+      <a href="projeto.html">Projeto</a>
+    </div>
+  </nav>
+
+
+  <!-- ===================================================
+       CABEÇALHO (HERO): banner azul do topo com nuvens
+       animadas, o nome SkySense, data/hora e as leituras
+       principais (temperatura em destaque + resumo geral)
+  =================================================== -->
+  <header class="hero">
+    <!-- Nuvens decorativas que deslizam pelo céu (ver @keyframes drift no CSS) -->
+    <div class="cloud c1"><svg viewBox="0 0 200 100" fill="#fff"><ellipse cx="60" cy="60" rx="55" ry="30"></ellipse><ellipse cx="110" cy="45" rx="42" ry="34"></ellipse><ellipse cx="145" cy="65" rx="40" ry="26"></ellipse></svg></div>
+    <div class="cloud c2"><svg viewBox="0 0 200 100" fill="#fff"><ellipse cx="60" cy="60" rx="55" ry="30"></ellipse><ellipse cx="110" cy="45" rx="42" ry="34"></ellipse><ellipse cx="145" cy="65" rx="40" ry="26"></ellipse></svg></div>
+    <div class="cloud c3"><svg viewBox="0 0 200 100" fill="#fff"><ellipse cx="60" cy="60" rx="55" ry="30"></ellipse><ellipse cx="110" cy="45" rx="42" ry="34"></ellipse><ellipse cx="145" cy="65" rx="40" ry="26"></ellipse></svg></div>
+    <!-- Brilho de sol pulsante no canto superior direito -->
+    <div class="sun"></div>
+
+    <!-- Logotipo do SkySense (esquerda) e data/hora atual (direita) -->
+    <div class="hero-top">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 40 40" fill="none">
+          <circle cx="20" cy="20" r="19" stroke="#fff" stroke-width="2"></circle>
+          <path d="M11 24c0-5 4-8 8-8 3 0 5.5 1.7 6.8 4.2A5.2 5.2 0 0 1 29 25a5 5 0 0 1-5 5H14a4 4 0 0 1-3-6.6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <div>
+          <div class="brand-text">SkySense</div>
+          <p class="tagline">Estação meteorológica inteligente</p>
+        </div>
+      </div>
+      <div class="datetime">
+        <div class="day" id="heroDate">sábado, 31 de outubro</div>
+        <div id="heroTime">14:36</div>
+      </div>
+    </div>
+
+    <!-- Temperatura em destaque + condição do tempo + resumo dos outros sensores -->
+    <div class="hero-main">
+      <div>
+        <div class="hero-temp">
+          <svg class="icon" viewBox="0 0 48 48" fill="none">
+            <path d="M20 27V10a4 4 0 1 1 8 0v17a8 8 0 1 1-8 0Z" stroke="#fff" stroke-width="2.2" fill="rgba(255,255,255,.25)"></path>
+            <circle cx="24" cy="32" r="4" fill="#fff"></circle>
+          </svg>
+          <div class="num" id="heroTemp">—<sup>°C</sup></div>
+        </div>
+        <p class="hero-cond" id="heroCond">Carregando leitura…</p>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">Umidade<span class="v" id="heroHum">—%</span></div>
+        <div class="hero-stat">Pressão<span class="v" id="heroPress">— hPa</span></div>
+        <div class="hero-stat">Qualidade do ar<span class="v" id="heroAir">—</span></div>
+        <div class="hero-stat">Chuva hoje<span class="v" id="heroRain">— mm</span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================
+       MENU DE ABAS: alterna qual painel (<section>) fica
+       visível. A troca é feita em JavaScript, em activateTab()
+  =================================================== -->
+  <nav class="tabs" role="tablist" aria-label="Sensores SkySense">
+    <button class="tab" role="tab" aria-selected="true" data-tab="overview">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.8"></rect><rect x="14" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.8"></rect><rect x="3" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.8"></rect><rect x="14" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.8"></rect></svg>
+      Visão geral
+    </button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="temp">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M11 15V6a2 2 0 1 1 4 0v9a4.5 4.5 0 1 1-4 0Z" stroke="currentColor" stroke-width="1.8"></path></svg>
+      Temperatura &amp; umidade
+    </button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="pressure">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle><path d="M12 12 16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+      Pressão
+    </button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="air">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 8h11a3 3 0 1 0-2.5-4.6M3 16h14a3 3 0 1 1-2.5 4.6M3 12h17a2.5 2.5 0 1 0-2-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+      Qualidade do ar
+    </button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="ldr">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"></circle><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+      Luz (LDR)
+    </button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="lux">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M9 18h6M10 21h4M8 10a4 4 0 1 1 8 0c0 2-1.2 2.8-2 4-.5.8-.6 1.4-.6 2H10.6c0-.6-.1-1.2-.6-2-.8-1.2-2-2-2-4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path></svg>
+      Luminosidade (lux)
+    </button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="rain">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M7 13a4.5 4.5 0 0 1 .7-8.9A5.5 5.5 0 0 1 18 6.5a4 4 0 0 1-1 7.5H7Z" stroke="currentColor" stroke-width="1.8"></path><path d="M8 18v2M12 18v2M16 18v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+      Chuva
+    </button>
+  </nav>
+
+  <main>
+
+    <!-- ===================================================
+         ABA "VISÃO GERAL": grade com um cartão por sensor.
+         Cada cartão mostra o valor atual + um mini-gráfico
+         (sparkline) e, ao clicar, leva para a aba detalhada
+         daquele sensor (ver data-goto + JS)
+    =================================================== -->
+    <!-- OVERVIEW -->
+    <section class="tab-panel active" id="panel-overview">
+      <div class="section-head">
+        <div>
+          <h2>Painel geral</h2>
+          <p>Leituras atuais de todos os sensores da estação</p>
+        </div>
+      </div>
+      <div class="grid">
+
+        <!-- Cartão de Temperatura + Umidade (DHT22) — maior porque é o dado principal -->
+        <div class="card card-feature" tabindex="0" data-goto="temp">
+          <div class="card-top">
+            <span class="card-label">Temperatura &amp; umidade · DHT22</span>
+            <svg class="card-icon" viewBox="0 0 48 48" fill="none"><path d="M20 27V10a4 4 0 1 1 8 0v17a8 8 0 1 1-8 0Z" stroke="var(--blue-deep)" stroke-width="2.4" fill="var(--blue-glow)"></path><circle cx="24" cy="32" r="4" fill="var(--blue-deep)"></circle></svg>
+          </div>
+          <div class="feature-pair">
+            <div>
+              <div class="card-label">Temperatura</div>
+              <div class="num" id="ov-temp">—</div>
+              <div class="card-sub">°C</div>
+            </div>
+            <div>
+              <div class="card-label">Umidade</div>
+              <div class="num" id="ov-hum">—</div>
+              <div class="card-sub">%</div>
+            </div>
+          </div>
+          <canvas class="spark" id="spark-temp"></canvas>
+        </div>
+
+        <!-- Cartão de Pressão (BMP280) -->
+        <div class="card card-reg" tabindex="0" data-goto="pressure">
+          <div class="card-top">
+            <span class="card-label">Pressão · BMP280</span>
+            <svg class="card-icon" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="17" stroke="var(--blue-deep)" stroke-width="2.4" fill="var(--blue-glow)"></circle><path d="M24 24 31 18" stroke="var(--blue-deep)" stroke-width="2.4" stroke-linecap="round"></path></svg>
+          </div>
+          <div class="num" id="ov-press">—</div>
+          <div class="card-value">hPa</div>
+          <canvas class="spark" id="spark-press"></canvas>
+        </div>
+
+        <!-- Cartão de Qualidade do ar (MQ135) -->
+        <div class="card card-reg" tabindex="0" data-goto="air">
+          <div class="card-top">
+            <span class="card-label">Qualidade do ar · MQ135</span>
+            <svg class="card-icon" viewBox="0 0 48 48" fill="none"><path d="M6 16h22a6 6 0 1 0-5-9M6 32h28a6 6 0 1 1-5 9M6 24h34a5 5 0 1 0-4-8" stroke="var(--blue-deep)" stroke-width="2.4" stroke-linecap="round"></path></svg>
+          </div>
+          <div class="num" id="ov-air">—</div>
+          <div class="badge" id="ov-air-badge">—</div>
+          <canvas class="spark" id="spark-air"></canvas>
+        </div>
+
+        <!-- Cartão de Luz ambiente (LDR) -->
+        <div class="card card-reg" tabindex="0" data-goto="ldr">
+          <div class="card-top">
+            <span class="card-label">Luz ambiente · LDR</span>
+            <svg class="card-icon" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="8" stroke="var(--blue-deep)" stroke-width="2.4" fill="var(--blue-glow)"></circle><path d="M24 6v4M24 38v4M6 24h4M38 24h4M11 11l3 3M34 34l3 3M37 11l-3 3M14 34l-3 3" stroke="var(--blue-deep)" stroke-width="2.4" stroke-linecap="round"></path></svg>
+          </div>
+          <div class="num" id="ov-ldr">—</div>
+          <div class="card-value">% de luz</div>
+          <canvas class="spark" id="spark-ldr"></canvas>
+        </div>
+
+        <!-- Cartão de Luminosidade em lux (BH1750) -->
+        <div class="card card-reg" tabindex="0" data-goto="lux">
+          <div class="card-top">
+            <span class="card-label">Luminosidade · BH1750</span>
+            <svg class="card-icon" viewBox="0 0 48 48" fill="none"><path d="M17 36h14M19 41h10M15 20a9 9 0 1 1 18 0c0 4-2.4 5.6-4 8-1 1.6-1.2 2.8-1.2 4H20.2c0-1.2-.2-2.4-1.2-4-1.6-2.4-4-4-4-8Z" stroke="var(--blue-deep)" stroke-width="2.4" fill="var(--blue-glow)" stroke-linejoin="round"></path></svg>
+          </div>
+          <div class="num" id="ov-lux">—</div>
+          <div class="card-value">lux</div>
+          <canvas class="spark" id="spark-lux"></canvas>
+        </div>
+
+        <!-- Cartão de Chuva (Davis Rain Collector) — largura total -->
+        <div class="card card-wide" tabindex="0" data-goto="rain">
+          <div class="card-top">
+            <span class="card-label">Chuva · Davis Rain Collector</span>
+            <svg class="card-icon" viewBox="0 0 48 48" fill="none"><path d="M14 27a9 9 0 0 1 1.4-17.9A11 11 0 0 1 36 13a8 8 0 0 1-2 15.9H14Z" stroke="var(--blue-deep)" stroke-width="2.4" fill="var(--blue-glow)"></path><path d="M16 36v4M24 36v4M32 36v4" stroke="var(--blue-deep)" stroke-width="2.4" stroke-linecap="round"></path></svg>
+          </div>
+          <div class="feature-pair">
+            <div>
+              <div class="card-label">Acumulado hoje</div>
+              <div class="num" id="ov-rain-total">—</div>
+              <div class="card-sub">mm</div>
+            </div>
+            <div>
+              <div class="card-label">Intensidade agora</div>
+              <div class="num" id="ov-rain-rate">—</div>
+              <div class="card-sub">mm/h</div>
+            </div>
+          </div>
+          <canvas class="spark" id="spark-rain"></canvas>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===================================================
+         ABA DETALHADA: Temperatura & Umidade (DHT22)
+         Layout em duas colunas: informações à esquerda
+         (detail-info) e gráfico histórico à direita (detail-chart)
+    =================================================== -->
+    <!-- TEMP / HUM -->
+    <section class="tab-panel" id="panel-temp">
+      <div class="detail">
+        <div class="detail-info">
+          <svg class="icon-lg" viewBox="0 0 48 48" fill="none"><path d="M20 27V10a4 4 0 1 1 8 0v17a8 8 0 1 1-8 0Z" stroke="var(--blue-deep)" stroke-width="2.4" fill="var(--blue-glow)"></path><circle cx="24" cy="32" r="4" fill="var(--blue-deep)"></circle></svg>
+          <h2 style="margin:0;font-size:19px;">Temperatura &amp; umidade</h2>
+          <div class="num" id="d-temp">—</div>
+          <div class="unit-label">graus Celsius · sensor DHT22</div>
+          <h3>O que este sensor mede</h3>
+          <p>O DHT22 combina um termistor e um sensor capacitivo de umidade em um único módulo, enviando leituras digitais de temperatura e umidade relativa do ar a cada poucos segundos.</p>
+          <div class="meta-row"><span>Umidade agora</span><span id="d-hum">—%</span></div>
+          <div class="meta-row"><span>Faixa ideal</span><span>18°C – 28°C</span></div>
+          <div class="meta-row"><span>Umidade ideal</span><span>40% – 60%</span></div>
+          <div class="meta-row"><span>Precisão do sensor</span><span>±0,5°C / ±2%</span></div>
+          <div class="meta-row"><span>Status</span><span id="d-temp-status">—</span></div>
+        </div>
+        <div class="detail-chart">
+          <!-- Botões para trocar o período mostrado no gráfico (ver JS: range-toggle) -->
+          <div class="range-toggle" data-chart="temp">
+            <button data-range="6h" aria-pressed="false">Últimas 6h</button>
+            <button data-range="24h" aria-pressed="true">24 horas</button>
+            <button data-range="7d" aria-pressed="false">7 dias</button>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-temp"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         ABA DETALHADA: Pressão atmosférica (BMP280)
+    =================================================== -->
+    <!-- PRESSURE -->
+    <section class="tab-panel" id="panel-pressure">
+      <div class="detail">
+        <div class="detail-info">
+          <svg class="icon-lg" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="17" stroke="var(--blue-deep)" stroke-width="2.4" fill="var(--blue-glow)"></circle><path d="M24 24 31 18" stroke="var(--blue-deep)" stroke-width="2.4" stroke-linecap="round"></path></svg>
+          <h2 style="margin:0;font-size:19px;">Pressão atmosférica</h2>
+          <div class="num" id="d-press">—</div>
+          <div class="unit-label">hPa · sensor BMP280</div>
+          <h3>O que este sensor mede</h3>
+          <p>O BMP280 mede a pressão barométrica do ambiente e permite calcular a altitude aproximada e antecipar mudanças de tempo: quedas bruscas costumam indicar chuva se aproximando.</p>
+          <div class="meta-row"><span>Altitude estimada</span><span id="d-alt">—</span></div>
+          <div class="meta-row"><span>Faixa típica ao nível do mar</span><span>1000 – 1025 hPa</span></div>
+          <div class="meta-row"><span>Tendência</span><span id="d-press-trend">—</span></div>
+          <div class="meta-row"><span>Status</span><span id="d-press-status">—</span></div>
+        </div>
+        <div class="detail-chart">
+          <div class="range-toggle" data-chart="pressure">
+            <button data-range="6h" aria-pressed="false">Últimas 6h</button>
+            <button data-range="24h" aria-pressed="true">24 horas</button>
+            <button data-range="7d" aria-pressed="false">7 dias</button>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-pressure"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         ABA DETALHADA: Qualidade do ar (MQ135)
+    =================================================== -->
+    <!-- AIR -->
+    <section class="tab-panel" id="panel-air">
+      <div class="detail">
+        <div class="detail-info">
+          <svg class="icon-lg" viewBox="0 0 48 48" fill="none"><path d="M6 16h22a6 6 0 1 0-5-9M6 32h28a6 6 0 1 1-5 9M6 24h34a5 5 0 1 0-4-8" stroke="var(--blue-deep)" stroke-width="2.4" stroke-linecap="round"></path></svg>
+          <h2 style="margin:0;font-size:19px;">Qualidade do ar</h2>
+          <div class="num" id="d-air">—</div>
+          <div class="unit-label">ppm CO₂eq · sensor MQ135</div>
+          <h3>O que este sensor mede</h3>
+          <p>O MQ135 é sensível a uma mistura de gases — CO₂, amônia, benzeno e fumaça — e é usado para estimar a qualidade geral do ar em ambientes internos e externos.</p>
+          <div class="meta-row"><span>Classificação atual</span><span id="d-air-class">—</span></div>
+          <div class="meta-row"><span>Bom</span><span>&lt; 700 ppm</span></div>
+          <div class="meta-row"><span>Moderado</span><span>700 – 1000 ppm</span></div>
+          <div class="meta-row"><span>Ruim</span><span>&gt; 1000 ppm</span></div>
+        </div>
+        <div class="detail-chart">
+          <div class="range-toggle" data-chart="air">
+            <button data-range="6h" aria-pressed="false">Últimas 6h</button>
+            <button data-range="24h" aria-pressed="true">24 horas</button>
+            <button data-range="7d" aria-pressed="false">7 dias</button>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-air"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         ABA DETALHADA: Luz ambiente relativa (LDR)
+    =================================================== -->
+    <!-- LDR -->
+    <section class="tab-panel" id="panel-ldr">
+      <div class="detail">
+        <div class="detail-info">
+          <svg class="icon-lg" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="8" stroke="var(--blue-deep)" stroke-width="2.4" fill="var(--blue-glow)"></circle><path d="M24 6v4M24 38v4M6 24h4M38 24h4M11 11l3 3M34 34l3 3M37 11l-3 3M14 34l-3 3" stroke="var(--blue-deep)" stroke-width="2.4" stroke-linecap="round"></path></svg>
+          <h2 style="margin:0;font-size:19px;">Luz ambiente (LDR)</h2>
+          <div class="num" id="d-ldr">—</div>
+          <div class="unit-label">% de incidência de luz</div>
+          <h3>O que este sensor mede</h3>
+          <p>O LDR é um fotoresistor: sua resistência elétrica cai conforme mais luz incide sobre ele. É um sensor relativo, ótimo para detectar se está claro, escuro ou nublado.</p>
+          <div class="meta-row"><span>Condição estimada</span><span id="d-ldr-cond">—</span></div>
+          <div class="meta-row"><span>Tipo de leitura</span><span>Relativa (0–100%)</span></div>
+          <div class="meta-row"><span>Complementa</span><span>Sensor BH1750</span></div>
+        </div>
+        <div class="detail-chart">
+          <div class="range-toggle" data-chart="ldr">
+            <button data-range="6h" aria-pressed="false">Últimas 6h</button>
+            <button data-range="24h" aria-pressed="true">24 horas</button>
+            <button data-range="7d" aria-pressed="false">7 dias</button>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-ldr"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         ABA DETALHADA: Luminosidade em lux (BH1750)
+    =================================================== -->
+    <!-- LUX -->
+    <section class="tab-panel" id="panel-lux">
+      <div class="detail">
+        <div class="detail-info">
+          <svg class="icon-lg" viewBox="0 0 48 48" fill="none"><path d="M17 36h14M19 41h10M15 20a9 9 0 1 1 18 0c0 4-2.4 5.6-4 8-1 1.6-1.2 2.8-1.2 4H20.2c0-1.2-.2-2.4-1.2-4-1.6-2.4-4-4-4-8Z" stroke="var(--blue-deep)" stroke-width="2.4" fill="var(--blue-glow)" stroke-linejoin="round"></path></svg>
+          <h2 style="margin:0;font-size:19px;">Luminosidade (BH1750)</h2>
+          <div class="num" id="d-lux">—</div>
+          <div class="unit-label">lux</div>
+          <h3>O que este sensor mede</h3>
+          <p>O BH1750 é um sensor digital de luminosidade que retorna o valor em lux com boa precisão, útil para automações que dependem do nível real de claridade do ambiente.</p>
+          <div class="meta-row"><span>Referência</span><span>Sol pleno ≈ 100.000 lux</span></div>
+          <div class="meta-row"><span>Referência</span><span>Dia nublado ≈ 1.000 lux</span></div>
+          <div class="meta-row"><span>Referência</span><span>Noite ≈ 0–1 lux</span></div>
+          <div class="meta-row"><span>Status</span><span id="d-lux-status">—</span></div>
+        </div>
+        <div class="detail-chart">
+          <div class="range-toggle" data-chart="lux">
+            <button data-range="6h" aria-pressed="false">Últimas 6h</button>
+            <button data-range="24h" aria-pressed="true">24 horas</button>
+            <button data-range="7d" aria-pressed="false">7 dias</button>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-lux"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         ABA DETALHADA: Chuva acumulada (Davis Rain Collector)
+    =================================================== -->
+    <!-- RAIN -->
+    <section class="tab-panel" id="panel-rain">
+      <div class="detail">
+        <div class="detail-info">
+          <svg class="icon-lg" viewBox="0 0 48 48" fill="none"><path d="M14 27a9 9 0 0 1 1.4-17.9A11 11 0 0 1 36 13a8 8 0 0 1-2 15.9H14Z" stroke="var(--blue-deep)" stroke-width="2.4" fill="var(--blue-glow)"></path><path d="M16 36v4M24 36v4M32 36v4" stroke="var(--blue-deep)" stroke-width="2.4" stroke-linecap="round"></path></svg>
+          <h2 style="margin:0;font-size:19px;">Chuva (Davis Rain Collector)</h2>
+          <div class="num" id="d-rain">—</div>
+          <div class="unit-label">mm acumulados hoje</div>
+          <h3>O que este sensor mede</h3>
+          <p>O coletor Davis funciona como uma báscula: a cada pequena quantidade de água coletada, uma bandeja bascula e conta um pulso, permitindo calcular o volume de chuva acumulado e a intensidade por hora.</p>
+          <div class="meta-row"><span>Intensidade agora</span><span id="d-rain-rate">—</span></div>
+          <div class="meta-row"><span>Leve</span><span>&lt; 2,5 mm/h</span></div>
+          <div class="meta-row"><span>Moderada</span><span>2,5 – 7,6 mm/h</span></div>
+          <div class="meta-row"><span>Forte</span><span>&gt; 7,6 mm/h</span></div>
+        </div>
+        <div class="detail-chart">
+          <div class="range-toggle" data-chart="rain">
+            <button data-range="6h" aria-pressed="false">Últimas 6h</button>
+            <button data-range="24h" aria-pressed="true">24 horas</button>
+            <button data-range="7d" aria-pressed="false">7 dias</button>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-rain"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Rodapé: indica se os dados são simulados ou vindos do ESP32, e o horário da última atualização -->
+  <footer>
+    <span id="sourceNote">SkySense <span class="dot">·</span> dados simulados nesta demonstração, prontos para receber leituras reais do ESP32</span>
+    <span id="lastUpdate">Atualizado agora</span>
+  </footer>
+
+</div>
+
+<script src="script.js"></script>
+
+
+</body></html>
