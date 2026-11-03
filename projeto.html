@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkySense | Projeto</title>
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+
+<body>
+
+    <header class="cabecalho">
+        <a href="index.html" class="logo">
+            <span class="icone-logo">☼</span>
+            <span>
+                <strong>SkySense</strong>
+                <small>Estação meteorológica inteligente</small>
+            </span>
+        </a>
+
+        <nav id="menu">
+            <a href="#inicio">Início</a>
+            <a href="#projeto" aria-current="page">Projeto</a>
+            <a href="#sensores">Componentes</a>
+            <a href="#metodologia">Metodologia</a>
+            <a href="#engenharia">Engenharia</a>
+            <a href="#aba3" aria-label="Aba personalizável 3"></a>
+            <a href="index.html" class="botao-dashboard" aria-label="Ir para o Dashboard">
+                Dashboard
+            </a>
+        </nav>
+    </header>
+
+    <main>
+
+        <section class="hero" id="inicio">
+            <div class="ceu">
+                <div class="sol"></div>
+                <div class="nuvem nuvem1"></div>
+                <div class="nuvem nuvem2"></div>
+            </div>
+
+            <div class="hero-texto">
+                <span class="etiqueta">PROJETO INTREGRADOR · IoT</span>
+
+                <h1>
+                    O clima ao seu redor,
+                    <span> mais inteligente.</span>
+                </h1>
+
+                <p>
+                    Uma estação meteorológica inteligente com ESP32
+                    para monitorar condições ambientais e apresentar informações de maneira simples e organizada.
+                </p>
+
+                <div class="acoes">
+                    <a href="#projeto" class="botao"> Conheça o projeto</a>
+                    <a href="index.html" class="botao botao-claro">
+                        Acessar Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <div class="cartao-temperatura">
+                <span>MONITORAMENTO AMBIENTAL</span>
+                <h2> - <small>°C</small></h2>
+                <p>Temperatura atual</p>
+                <small>Leituras disponíveis após a conexão dos sensores.</small>
+            </div>
+        </section>
+
+        <section class="apresentacao" id="projeto">
+            <span class="etiqueta">01 / SOBRE O PROJETO</span>
+            <h2>Conheça o Skysense</h2>
+
+            <p>
+                O SkySense é um projeto acadêmico que propõe o
+                desenvolvimento de uma estação meteorológica baseada
+                na placa ESP32. O sistema utiliza sensores para coletar
+                informações ambientais e disponibilizá-las em um
+                dashboard acessível pelo navegador.
+            </p>
+
+            <div class="grade">
+                <article class="cartao">
+                    <h3>Coleta de dados</h3>
+                    <p>
+                        Captura de informações ambientais por meio
+                        dos sensores conectados à ESP32.
+                    </p>
+                </article>
+
+                <article class="cartao">
+                    <h3>Visualização</h3>
+                    <p>
+                        Organização das leituras em cartões,
+                        indicadores e gráficos.
+                    </p>
+                </article>
+
+                <article class="cartao">
+                    <h3>Tecnologia IoT</h3>
+                    <p>
+                        Utilização de conectividade para facilitar
+                        o acesso às informações da estação.
+                    </p>
+                </article>
+            </div>
+            <h3>Objetivo do projeto</h3>
+            <p>
+                Desenvolver um modelo experimental de estação meteorológica com a utilização da placa ESP32,
+                capaz de realizar o monitoramento de diferentes condições ambientais, encaminhar os dados obtidos para
+                uma API programada em Python,
+                armazenar essas informações em um banco de dados e apresentá-las em uma plataforma web por meio de um
+                dashboard.
+            </p>
+            <p>
+                As estações meteorológicas convencionais possuem custos elevados, o que dificulta sua instalação e
+                amplia sua disponibilidade limitada. Diante disso, este projeto propõe desenvolver uma alternativa
+                econômica,
+                utilizando componentes acessíveis e os conhecimentos adquiridos durante o semestre, capaz de coletar,
+                armazenar e apresentar informações ambientais de maneira prática. Sua importância está na aplicação dos
+                conteúdos de
+                Programação em Python, Sistemas Embarcados, Circuitos Digitais e Engenharia de Software, além de
+                facilitar o acesso a dados que incentivem a conscientização ambiental.
+            </p>
+        </section>
+
+        <section class="apresentacao" id="sensores">
+            <span class="etiqueta">02 / COMPONENTES</span>
+            <h2>ESP32</h2>
+            <p>
+                O ESP32, desenvolvido pela empresa Espressif, é um microcontrolador de baixo custo que possui Wi-Fi e
+                Bluetooth integrados, processador de dois núcleos, entradas e saídas digitais (GPIOs) e conversores
+                analógico-digitais.
+                Essas funcionalidades permitem conectar sensores, coletar informações e transmitir dados pela internet,
+                tornando-o bastante utilizado em projetos de IoT. Sua programação pode ser realizada por meio de
+                ferramentas como Arduino IDE e MicroPython, uma versão simplificada da linguagem Python para
+                microcontroladores.
+                É importante destacar que as entradas analógicas do ADC2 apresentam limitações quando o Wi-Fi está
+                ativado. Por isso, recomenda-se utilizar os pinos 34 e 35, pertencentes ao ADC1, para conectar os
+                sensores analógicos.
+            </p>
+
+            <h2>Sensores da estação</h2>
+            <div class="grade sensores">
+                <article class="cartao">
+                    <span class="icone">🌡</span>
+                    <h3>Temperatura e umidade</h3>
+                    <p>DHT22</p>
+                </article>
+
+                <article class="cartao">
+                    <span class="icone">◉</span>
+                    <h3>Pressão atmosférica</h3>
+                    <p>BMP280</p>
+                </article>
+
+                <article class="cartao">
+                    <span class="icone">≋</span>
+                    <h3>Presença de gases no ar</h3>
+                    <p>MQ135</p>
+                </article>
+
+                <article class="cartao">
+                    <span class="icone">☼</span>
+                    <h3>Luz ambiente</h3>
+                    <p>LDR</p>
+                </article>
+            </div>
+
+            <h2>API e bancos de dados</h2>
+            <p>
+                A API funciona como uma ponte de comunicação entre diferentes sistemas. Neste projeto, desenvolvida em
+                Python com o auxílio do FastAPI,
+                ela recebe os dados enviados pelo ESP32 via HTTP, realiza o armazenamento em um banco de dados
+                relacional e disponibiliza as informações para consulta no dashboard.
+            </p>
+
+            <h2>Dashboard</h2>
+            <p>
+                O dashboard é uma interface que organiza as principais informações de um sistema em uma única tela,
+                facilitando o acompanhamento dos dados.
+                No projeto SkySense, ele apresenta cartões informativos (cards) com as medições atuais de cada variável
+                e gráficos que permitem visualizar o histórico e as alterações dos valores ao longo do tempo.
+                Seu desenvolvimento utiliza HTML, CSS e JavaScript, com o auxílio da biblioteca Chart.js para a criação
+                dos gráficos.
+            </p>
+        </section>
+
+        <section class="apresentacao" id="metodologia">
+            <span class="etiqueta">03 / Metodologia</span>
+            <h2>Etapas do trabalho</h2>
+            <p>
+                O trabalho é uma pesquisa aplicada, que combina pesquisa bibliográfica (livros, artigos e folhas de
+                dados dos sensores) com o desenvolvimento de um protótipo.
+                Ele foi dividido em cinco etapas:
+            </p>
+            <div class="grade">
+                <article class=cartao>
+                    <h3>Etapa 01</h3>
+                    <p>
+                        Efetuar a coleta de informações ambientais, incluindo temperatura, umidade, pressão atmosférica,
+                        qualidade do ar e luminosidade,
+                        utilizando a placa ESP32 em conjunto com os sensores DHT22, BMP280, MQ-135 e LDR.
+                    </p>
+                </article>
+
+                <article class="cartao">
+                    <h3>Etapa 02</h3>
+                    <p>
+                        Realizar a transmissão dos dados obtidos por meio de conexão Wi-Fi para uma API desenvolvida na
+                        linguagem Python.
+                    </p>
+                </article>
+
+                <article class="cartao">
+                    <h3>Etapa 03</h3>
+                    <p>
+                        Armazenar as informações coletadas em uma estrutura de banco de dados, permitindo seu registro e
+                        consulta posterior.
+                    </p>
+                </article>
+
+                <article class="cartao">
+                    <h3>Etapa 04</h3>
+                    <p>
+                        Desenvolver um painel de monitoramento na web para apresentar as medições mais recentes e os
+                        registros anteriores,
+                        utilizando cartões informativos e gráficos para facilitar a interpretação dos dados.
+                    </p>
+                </article>
+
+                <article class="cartao">
+                    <h3>Etapa 05</h3>
+                    <p>
+                        Elaborar a documentação técnica do projeto, descrevendo as etapas de desenvolvimento e seguindo
+                        as diretrizes estabelecidas pelas normas da ABNT.
+                    </p>
+                </article>
+            </div>
+            <h2>Ferramentas</h2>
+            <div class="tabela-responsiva">
+
+                <table class="tabela-ferramentas">
+
+                    <thead>
+                        <tr>
+                            <th>Parte do projeto</th>
+                            <th>Ferramenta</th>
+                            <th>Para que serve</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>Simulação</td>
+                            <td>Wokwi</td>
+                            <td>
+                                Simular o circuito e testar o código
+                                antes da montagem física.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Firmware</td>
+                            <td>MicroPython</td>
+                            <td>
+                                Desenvolver a programação da placa ESP32
+                                e realizar a leitura dos sensores.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>API</td>
+                            <td>Python e FastAPI</td>
+                            <td>
+                                Receber, armazenar e disponibilizar
+                                os dados coletados pela estação.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Banco de dados</td>
+                            <td>PostgreSQL</td>
+                            <td>
+                                Armazenar as medições para consultas
+                                e acompanhamento do histórico.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Dashboard</td>
+                            <td>HTML, CSS, JavaScript e Chart.js</td>
+                            <td>
+                                Apresentar os dados ambientais por meio
+                                de cartões informativos e gráficos.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Versionamento</td>
+                            <td>GitHub</td>
+                            <td>
+                                Armazenar o código-fonte e organizar
+                                as alterações do projeto.
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        </section>
+
+        <section class="apresentacao" id="engenharia">
+            <span class="etiqueta">04 / Engenharia de Software</span>
+            <h2>Requisitos</h2>
+            <p>Um requisito funcional descreve algo que o sistema deve fazer. O SkySense tem cinco: </p>
+
+            <div class="tabela-responsiva">
+                <table class="tabela-ferramentas">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Requisito</th>
+                            <th>Parte envolvida</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>RF01</td>
+                            <td>Coletar dados dos sensores</td>
+                            <td>ESP32</td>
+                        </tr>
+
+                        <tr>
+                            <td>RF02</td>
+                            <td>Enviar dados para a API</td>
+                            <td>ESP32 e API</td>
+                        </tr>
+
+                        <tr>
+                            <td>RF03</td>
+                            <td>Armazenar dados para a API</td>
+                            <td> API e banco de dados</td>
+                        </tr>
+
+                        <tr>
+                            <td>RF04</td>
+                            <td>Consultar dados pela API</td>
+                            <td>API</td>
+                        </tr>
+
+                        <tr>
+                            <td>RF05</td>
+                            <td>Exibir dados em dashboard</td>
+                            <td>Dashboard</td>
+                        </tr>
+                </table>
+            </div>
+
+            <h2>Arquitetura do sistema</h2>
+            <p>O funcionamento do sistema ocorre por meio de um fluxo de informações entre os sensores, a ESP32, a API em Python, o banco de dados e o dashboard. A placa coleta as medições e as envia em formato JSON por meio de requisições HTTP POST.
+                 A API recebe e armazena os registros, enquanto o dashboard utiliza requisições HTTP GET para consultar e exibir os dados. 
+                 Essa comunicação foi escolhida por sua simplicidade de implementação e integração entre os componentes.
+            </p>
+
+            <img src="Arquitetura simplificada do SkySense.PNG" alt="Descrição da imagem">
+
+            <h3>Firmware do ESP32</h3>
+            <p>
+                O firmware é desenvolvido em MicroPython (Apêndice B) e controla a coleta e o envio das informações. 
+                A cada 60 segundos, o ESP32 realiza a conexão Wi-Fi, coleta os dados dos sensores e os encaminha à API em formato JSON. 
+                Caso ocorra alguma falha na leitura, o valor correspondente é enviado sem preenchimento. 
+                A luminosidade é apresentada em porcentagem, enquanto a qualidade do ar utiliza o valor obtido diretamente pela entrada analógica.
+            </p>
+
+            <h3>API em Python</h3>
+            <p>
+                A API é escrita com FastAPI (Apêndice C) e tem três endpoints. O FastAPI confere automaticamente se os campos recebidos têm o tipo esperado 
+            </p>
+            <div class="tabela-responsiva">
+                <table class="tabela-ferramentas">
+                    <thead>
+                        <tr>
+                            <th>Método</th>
+                            <th>Rota</th>
+                            <th>Função</th>
+                            <th>Requisitos</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>POST</td>
+                            <td>/leituras</td>
+                            <td>Recebe o JSON do ESP32 e grava na tabela</td>
+                            <td>RF02 e RF03</td>
+                        </tr>
+
+                        <tr>
+                            <td>GET</td>
+                            <td>/leituras/ultima</td>
+                            <td>Devolve a leitura mais recente (usada no cards)</td>
+                            <td>RF04</td>
+                        </tr>
+
+                        <tr>
+                            <td>GET</td>
+                            <td>/leituras?limite=50</td>
+                            <td>Devolve as últimas leituras (usadas nos gráficos)</td>
+                            <td>RF04</td>
+                        </tr>
+                </table>
+            </div>
+
+            <h3>Dashboard</h3>
+            <p>
+                O dashboard, é composto por dois elementos principais: cartões (cards) que exibem os valores atuais de temperatura, umidade, pressão, qualidade do ar e luminosidade; e gráficos que permitem acompanhar o histórico das medições e selecionar as variáveis desejadas. 
+                A página consulta a API periodicamente para manter as informações atualizadas, sem necessidade de recarregamento.
+            </p>
+
+            <h2>Arquitetura da infraestrutura</h2>
+            <h3>Hardware e ligação dos sensores</h3>
+            <h3>A lista de componentes parte da relação do roteiro:</h3>
+
+            <div class="tabela-responsiva">
+
+                <table class="tabela-ferramentas">
+
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantidade</th>
+                            <th>Para que serve</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>ESP32 (placa de desenvolvimento)</td>
+                            <td>1</td>
+                            <td>Ler os sensores e enviar os dados</td>
+                        </tr>
+
+                        <tr>
+                            <td>DHT22</td>
+                            <td>1</td>
+                            <td>Temperatura e umidade</td>
+                        </tr>
+
+                        <tr>
+                            <td>BMP280 (módulo I²C)</td>
+                            <td>1</td>
+                            <td>Pressão atmosférica</td>
+                        </tr>
+
+                        <tr>
+                            <td>MQ-135 (módulo com saída analógica)</td>
+                            <td>1</td>
+                            <td>Qualidade do ar (índice relativo)</td>
+                        </tr>
+
+                        <tr>
+                            <td>LDR</td>
+                            <td>1</td>
+                            <td>Luminosidade</td>
+                        </tr>
+
+                        <tr>
+                            <td>Resistores: 4,7 kΩ, 10 kΩ (×2) e 20 kΩ</td>
+                            <td>4</td>
+                            <td>Pull-up do DHT22, divisor do LDR e divisor do MQ-135</td>
+                        </tr>
+
+                         <tr>
+                            <td>Protoboard e jumpers</td>
+                            <td>1 kit</td>
+                            <td>Ligações do protótipo</td>
+                        </tr>
+
+                        <tr>
+                            <td>Alimentação USB de 5 V</td>
+                            <td>1</td>
+                            <td>Alimentar o ESP32 e o MQ-135</td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <h3>Esquema de ligação dos sensores ao ESP32:</h3>
+            <img src="Esquema de ligação dos sensores ao ESP32.PNG">
+
+            <h3>Pinagem do ESP32:</h3>
+
+            <div class="tabela-responsiva">
+
+                <table class="tabela-ferramentas">
+
+                    <thead>
+                        <tr>
+                            <th>Sensor</th>
+                            <th>Pino do ESP32</th>
+                            <th>Observação</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>BMP280</td>
+                            <td>GPIO 21 (SDA) e GPIO 22 (SCL)</td>
+                            <td>Barramento I²C, alimentado com 3,3 V</td>
+                        </tr>
+
+                        <tr>
+                            <td>DHT22</td>
+                            <td>GPIO 4</td>
+                            <td>Resistor pull-up de 4,7 kΩ no sinal</td>
+                        </tr>
+
+                        <tr>
+                            <td>MQ-135</td>
+                            <td>GPIO 34 (ADC1)</td>
+                            <td>Módulo alimentado com 5 V; saída reduzida por divisor de 10 kΩ e 20 kΩ</td>
+                        </tr>
+
+                        <tr>
+                            <td>LDR</td>
+                            <td>GPIO 35 (ADC1)</td>
+                            <td>LDR em divisor de tensão com resistor de 10 kΩ</td>
+                    </tbody>
+
+                </table>
+
+            </div>
+            <p>
+                O módulo MQ-135 opera com alimentação de 5 V, enquanto os pinos do ESP32 aceitam tensão de até 3,3 V. Por esse motivo, utiliza-se um divisor de tensão para adequar o sinal antes de conectá-lo à placa. 
+                Além disso, os sensores analógicos são ligados aos pinos do ADC1, evitando interferências no funcionamento durante a conexão Wi-Fi.
+            </p>
+
+            <h3>Rede e servidor</h3>
+            <p>
+                O ESP32 opera na faixa de 2,4 GHz do Wi-Fi, então a rede usada precisa oferecer essa faixa. A decisão da equipe é rodar tudo em um computador ligado à mesma rede: 
+                a API, o PostgreSQL e os arquivos do dashboard. O ESP32 envia os dados para o endereço IP desse computador, informado no código do firmware.
+            </p>
+
+            <h3>Arquitetura do banco de dados</h3>
+            <p>O banco de dados utiliza uma única tabela, denominada leituras, responsável por armazenar cada medição realizada. O campo id funciona como identificador exclusivo de cada registro, enquanto o campo data_hora recebe automaticamente a data e o horário da inserção por meio da função now(). 
+                As colunas referentes aos sensores permitem valores nulos (NULL), caso ocorra alguma falha na coleta. O dicionário de dados apresenta a descrição das variáveis utilizadas na tabela, e o código SQL está disponível no Apêndice A.
+            </p>
+            <h3>Dicionário de dados da tabela leituras:</h3>
+
+            <div class="tabela-responsiva">
+
+        <table class="tabela-ferramentas">
+
+            <thead>
+                <tr>
+                    <th>Campo</th>
+                    <th>Tipo</th>
+                    <th>Unidade</th>
+                    <th>Descrição</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td>id</td>
+                    <td>SERIAL (chave primária)</td>
+                    <td>—</td>
+                    <td>Identificador da leitura</td>
+                </tr>
+
+                <tr>
+                    <td>data_hora</td>
+                    <td>TIMESTAMP</td>
+                    <td>—</td>
+                    <td>Data e hora da gravação (automática)</td>
+                </tr>
+
+                <tr>
+                    <td>temperatura</td>
+                    <td>REAL</td>
+                    <td>°C</td>
+                    <td>Temperatura do ar (DHT22)</td>
+                </tr>
+
+                <tr>
+                    <td>umidade</td>
+                    <td>REAL</td>
+                    <td>%</td>
+                    <td>Umidade relativa do ar (DHT22)</td>
+                </tr>
+
+                <tr>
+                    <td>pressao</td>
+                    <td>REAL</td>
+                    <td>hPa</td>
+                    <td>Pressão atmosférica (BMP280)</td>
+                </tr>
+
+                <tr>
+                    <td>qualidade_ar</td>
+                    <td>INTEGER</td>
+                    <td>0 a 4095</td>
+                    <td>Valor lido no ADC (MQ-135); índice relativo</td>
+                </tr>
+
+                <tr>
+                    <td>luminosidade</td>
+                    <td>REAL</td>
+                    <td>% (0 a 100)</td>
+                    <td>Luminosidade relativa (LDR)</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+        </section>
+
+        <section class="chamada-dashboard">
+            <div>
+                <span class="etiqueta">DADOS DA ESTAÇÃO</span>
+                <h2>Acompanhe as condições ambientais.</h2>
+                <p>Consulte o painel de monitoramento do SkySense.</p>
+            </div>
+
+            <a href="index.html" class="botao">
+                Abrir dashboard ↗
+            </a>
+        </section>
+
+    </main>
+
+
+    <footer>
+        <strong>SkySense</strong>
+        <p>Estação Meteorológica Inteligente · Projeto acadêmico</p>
+        <small>© SkySense</small>
+    </footer>
+
+</body>
+
+</html>
