@@ -6,11 +6,10 @@ import urequests
 import ujson
 from bmp280 import BMP280
 
-# CONFIGURACAO DE PERFIS DE REDE E API
 CONFIGURACAO = [
     {
         "nome": "Guilherme",
-        "ssid": "FAMILIA @LMEIDA",  # Ajuste para o SSID correto da sua rede
+        "ssid": "FAMILIA @LMEIDA",  
         "senha": "Amor@7854",
         "api_url": "http://192.168.15.7:8000/api/clima",
         "cidade": "São Paulo",
@@ -18,7 +17,6 @@ CONFIGURACAO = [
     }
 ]
 
-# Inicialização global da interface Wi-Fi para evitar reinstanciação excessiva
 wifi = network.WLAN(network.STA_IF)
 
 def conectar_wifi():
