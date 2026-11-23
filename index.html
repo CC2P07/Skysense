@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="SkySense: projeto de estação meteorológica com ESP32 e painel de monitoramento ambiental.">
+        <title>SkySense | Estação Meteorológica</title>
+        <link rel="stylesheet" href="styles.css">
+        <script src="script.js" defer></script>
+    </head>
+    <body>
+        <svg class="simbolos" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <symbol id="i-sol" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="4"/>
+                <path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>
+            </symbol>
+            <symbol id="i-temperatura" viewBox="0 0 24 24">
+                <path d="M9 14.5V5a3 3 0 0 1 6 0v9.5a5 5 0 1 1-6 0Z"/>
+                <path d="M12 8v9"/>
+                <circle cx="12" cy="18" r="1.5"/>
+            </symbol>
+            <symbol id="i-umidade" viewBox="0 0 24 24">
+                <path d="M12 3S5 10.3 5 15a7 7 0 0 0 14 0c0-4.7-7-12-7-12Z"/>
+                <path d="M8 15a4 4 0 0 0 4 4"/>
+            </symbol>
+            <symbol id="i-pressao" viewBox="0 0 24 24">
+                <path d="M4 18a9 9 0 1 1 16 0Z"/>
+                <path d="m12 14 4-5M6 12h1m10 0h1M12 5v1"/>
+                <circle cx="12" cy="14" r="1"/>
+            </symbol>
+            <symbol id="i-ar" viewBox="0 0 24 24">
+                <path d="M3 8h12a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h6a3 3 0 1 1-3 3"/>
+            </symbol>
+            <symbol id="i-chuva" viewBox="0 0 24 24">
+                <path d="M6 14a4 4 0 0 1 0-8 6 6 0 0 1 11-1 4.5 4.5 0 0 1 1 9H6Z"/>
+                <path d="m8 17-1 3m6-3-1 3m6-3-1 3"/>
+            </symbol>
+            <symbol id="i-grafico" viewBox="0 0 24 24">
+                <path d="M4 3v17h17M7 14l4-5 4 3 5-7"/>
+            </symbol>
+        </svg>
+        <a class="pular-conteudo" href="#inicio">
+            Pular para o conteúdo
+        </a>
+        <header class="cabecalho">
+            <a href="#inicio" class="logo" aria-label="SkySense, início">
+                <span class="icone-logo">
+                    <svg class="icone" aria-hidden="true">
+                        <use href="#i-sol"/>
+                    </svg>
+                </span>
+                <span>
+                    <strong>
+                        SkySense
+                    </strong>
+                    <small>
+                        Estação meteorológica inteligente
+                    </small>
+                </span>
+            </a>
+            <button class="menu-toggle" id="menu-toggle" type="button" aria-controls="menu" aria-expanded="false">
+                Menu
+            </button>
+            <nav id="menu" aria-label="Navegação principal">
+                <a href="#inicio">
+                    Início
+                </a>
+                <a href="#projeto">
+                    Projeto
+                </a>
+                <a href="#sensores">
+                    Sensores
+                </a>
+                <!-- Os próximos links podem ser acrescentados aqui. -->
+                <a href="#dashboard" class="botao-dashboard">
+                    Dashboard
+                    <span aria-hidden="true">
+                        ↗
+                    </span>
+                </a>
+            </nav>
+        </header>
+        <main>
+            <section class="hero" id="inicio" aria-labelledby="titulo-inicio">
+                <div class="ceu" aria-hidden="true">
+                    <div class="sol">
+                    </div>
+                    <div class="nuvem nuvem1">
+                    </div>
+                    <div class="nuvem nuvem2">
+                    </div>
+                </div>
+                <div class="hero-texto">
+                    <span class="etiqueta">
+                        PROJETO INTEGRADOR · IoT
+                    </span>
+                    <h1 id="titulo-inicio">
+                        O clima ao seu redor,
+                        <span>
+                            mais inteligente.
+                        </span>
+                    </h1>
+                    <p>
+                        Uma estação com ESP32 para acompanhar as condições ambientais e reunir as leituras dos sensores em um só lugar.
+                    </p>
+                    <div class="acoes">
+                        <a href="#projeto" class="botao">
+                            Conheça o projeto
+                        </a>
+                        <a href="#dashboard" class="botao botao-claro">
+                            Acessar dashboard
+                            <span aria-hidden="true">
+                                ↗
+                            </span>
+                        </a>
+                    </div>
+                    <span class="hero-rodape">
+                        ESP32
+                        <span aria-hidden="true">
+                            /
+                        </span>
+                        Sensores ambientais
+                        <span aria-hidden="true">
+                            /
+                        </span>
+                        Monitoramento
+                    </span>
+                </div>
+                <div class="cartao-temperatura">
+                    <div class="linha-cartao">
+                        <span>
+                            NA ESTAÇÃO
+                        </span>
+                        <svg class="icone" aria-hidden="true">
+                            <use href="#i-sol"/>
+                        </svg>
+                    </div>
+                    <p class="valor-destaque">
+                        <span id="temperatura-inicio">
+                            —
+                        </span>
+                        <small>
+                            °C
+                        </small>
+                    </p>
+                    <h2>
+                        Temperatura ambiente
+                    </h2>
+                    <div class="linha-estacao">
+                        <span class="ponto">
+                        </span>
+                        <span id="situacao-inicio">
+                            Aguardando conexão
+                        </span>
+                    </div>
+                    <p class="nota-inicio" id="nota-inicio">
+                        As leituras aparecem após a conexão com a estação.
+                    </p>
+                </div>
+            </section>
+            <section class="apresentacao" id="projeto" aria-labelledby="titulo-projeto">
+                <span class="etiqueta">
+                    01 / SOBRE O PROJETO
+                </span>
+                <h2 id="titulo-projeto">
+                    Conheça o SkySense.
+                </h2>
+                <p class="introducao">
+                    O SkySense é um projeto acadêmico de estação meteorológica baseada na ESP32. A proposta é coletar dados do ambiente e facilitar a consulta pelo navegador, aproximando o que estudamos de uma aplicação prática.
+                </p>
+                <div class="grade">
+                    <article class="cartao etapa">
+                        <span class="numero-etapa">
+                            01
+                        </span>
+                        <h3>
+                            Coletar
+                        </h3>
+                        <p>
+                            Os sensores conectados à ESP32 fazem as leituras das condições ambientais.
+                        </p>
+                    </article>
+                    <article class="cartao etapa">
+                        <span class="numero-etapa">
+                            02
+                        </span>
+                        <h3>
+                            Transmitir
+                        </h3>
+                        <p>
+                            A conexão permite disponibilizar os dados da estação para consulta.
+                        </p>
+                    </article>
+                    <article class="cartao etapa">
+                        <span class="numero-etapa">
+                            03
+                        </span>
+                        <h3>
+                            Acompanhar
+                        </h3>
+                        <p>
+                            O dashboard organiza as leituras em indicadores, gráfico e histórico da sessão.
+                        </p>
+                    </article>
+                </div>
+            </section>
+            <section class="apresentacao" id="sensores" aria-labelledby="titulo-sensores">
+                <div class="cabecalho-secao">
+                    <div>
+                        <span class="etiqueta">
+                            02 / COMPONENTES
+                        </span>
+                        <h2 id="titulo-sensores">
+                            Sensores da estação.
+                        </h2>
+                    </div>
+                    <p>
+                        Cada componente acompanha
+                        <br>
+                        uma parte do ambiente.
+                    </p>
+                </div>
+                <div class="grade sensores">
+                    <article class="cartao sensor">
+                        <svg class="icone" aria-hidden="true">
+                            <use href="#i-temperatura"/>
+                        </svg>
+                        <h3>
+                            Temperatura
+                            <br>
+                            e umidade
+                        </h3>
+                        <p>
+                            DHT22
+                        </p>
+                    </article>
+                    <article class="cartao sensor">
+                        <svg class="icone" aria-hidden="true">
+                            <use href="#i-pressao"/>
+                        </svg>
+                        <h3>
+                            Pressão
+                            <br>
+                            atmosférica
+                        </h3>
+                        <p>
+                            BMP280
+                        </p>
+                    </article>
+                    <article class="cartao sensor">
+                        <svg class="icone" aria-hidden="true">
+                            <use href="#i-ar"/>
+                        </svg>
+                        <h3>
+                            Leitura
+                            <br>
+                            do ar
+                        </h3>
+                        <p>
+                            MQ135
+                        </p>
+                    </article>
+                    <article class="cartao sensor">
+                        <svg class="icone" aria-hidden="true">
+                            <use href="#i-sol"/>
+                        </svg>
+                        <h3>
+                            Luz
+                            <br>
+                            ambiente
+                        </h3>
+                        <p>
+                            LDR
+                        </p>
+                    </article>
+                    <article class="cartao sensor">
+                        <svg class="icone" aria-hidden="true">
+                            <use href="#i-chuva"/>
+                        </svg>
+                        <h3>
+                            Detecção
+                            <br>
+                            de chuva
+                        </h3>
+                        <p>
+                            Módulo de chuva
+                        </p>
+                    </article>
+                </div>
+            </section>
+            <div class="apresentacao espacos-reservados">
+                <!-- ESPAÇO PARA PERSONALIZAÇÃO 1 -->
+                <section class="reservado" id="aba1" aria-label="Espaço reservado 1">
+                    <h2>
+                    </h2>
+                    <p>
+                    </p>
+                </section>
+                <!-- ESPAÇO PARA PERSONALIZAÇÃO 2 -->
+                <section class="reservado" id="aba2" aria-label="Espaço reservado 2">
+                    <h2>
+                    </h2>
+                    <p>
+                    </p>
+                </section>
+            </div>
+            <section class="painel" id="dashboard" aria-labelledby="titulo-dashboard">
+                <div class="conteudo-painel">
+                    <div class="cabecalho-secao">
+                        <div>
+                            <span class="etiqueta">
+                                03 / DASHBOARD
+                            </span>
+                            <h2 id="titulo-dashboard">
+                                Dados da estação.
+                            </h2>
+                            <p>
+                                As condições do ambiente, leitura por leitura.
+                            </p>
+                        </div>
+                        <span class="status" id="status-conexao" role="status">
+                            Aguardando conexão
+                        </span>
+                    </div>
+                    <noscript>
+                        <p class="aviso">
+                            Ative o JavaScript do navegador para utilizar o dashboard.
+                        </p>
+                    </noscript>
+                    <p class="aviso aviso-exemplo" id="aviso-exemplo" hidden>
+                        Dados de exemplo para visualizar o painel. Nenhum sensor está conectado.
+                    </p>
+                    <p class="aviso aviso-erro" id="aviso-erro" role="alert" hidden>
+                    </p>
+                    <div class="grade-medidas" id="medidas">
+                        <article class="medida medida-temperatura">
+                            <div class="linha-cartao">
+                                <h3>
+                                    Temperatura
+                                </h3>
+                                <svg class="icone" aria-hidden="true">
+                                    <use href="#i-temperatura"/>
+                                </svg>
+                            </div>
+                            <p class="valor">
+                                <span id="temperatura">
+                                    —
+                                </span>
+                                <small>
+                                    °C
+                                </small>
+                            </p>
+                            <span class="origem">
+                                DHT22
+                            </span>
+                        </article>
+                        <article class="medida">
+                            <div class="linha-cartao">
+                                <h3>
+                                    Umidade do ar
+                                </h3>
+                                <svg class="icone" aria-hidden="true">
+                                    <use href="#i-umidade"/>
+                                </svg>
+                            </div>
+                            <p class="valor">
+                                <span id="umidade">
+                                    —
+                                </span>
+                                <small>
+                                    %
+                                </small>
+                            </p>
+                            <span class="origem">
+                                DHT22
+                            </span>
+                        </article>
+                        <article class="medida">
+                            <div class="linha-cartao">
+                                <h3>
+                                    Pressão atmosférica
+                                </h3>
+                                <svg class="icone" aria-hidden="true">
+                                    <use href="#i-pressao"/>
+                                </svg>
+                            </div>
+                            <p class="valor">
+                                <span id="pressao">
+                                    —
+                                </span>
+                                <small>
+                                    hPa
+                                </small>
+                            </p>
+                            <span class="origem">
+                                BMP280
+                            </span>
+                        </article>
+                        <article class="medida">
+                            <div class="linha-cartao">
+                                <h3>
+                                    Leitura do ar
+                                </h3>
+                                <svg class="icone" aria-hidden="true">
+                                    <use href="#i-ar"/>
+                                </svg>
+                            </div>
+                            <p class="valor">
+                                <span id="qualidade-ar">
+                                    —
+                                </span>
+                                <small>
+                                    ADC
+                                </small>
+                            </p>
+                            <span class="origem">
+                                MQ135 · valor bruto
+                            </span>
+                        </article>
+                        <article class="medida">
+                            <div class="linha-cartao">
+                                <h3>
+                                    Luz ambiente
+                                </h3>
+                                <svg class="icone" aria-hidden="true">
+                                    <use href="#i-sol"/>
+                                </svg>
+                            </div>
+                            <p class="valor">
+                                <span id="luminosidade">
+                                    —
+                                </span>
+                                <small>
+                                    ADC
+                                </small>
+                            </p>
+                            <span class="origem">
+                                LDR · valor bruto
+                            </span>
+                        </article>
+                        <article class="medida">
+                            <div class="linha-cartao">
+                                <h3>
+                                    Detecção de chuva
+                                </h3>
+                                <svg class="icone" aria-hidden="true">
+                                    <use href="#i-chuva"/>
+                                </svg>
+                            </div>
+                            <p class="valor valor-chuva" id="chuva">
+                                —
+                            </p>
+                            <span class="origem">
+                                Módulo de chuva
+                            </span>
+                        </article>
+                    </div>
+                    <div class="linha-atualizacao">
+                        <span id="ultima-atualizacao">
+                            Nenhuma leitura recebida.
+                        </span>
+                        <button class="link-botao" id="atualizar" type="button" disabled>
+                            ↻ Atualizar agora
+                        </button>
+                    </div>
+                    <div class="grade-painel">
+                        <article class="cartao grafico-cartao">
+                            <div class="titulo-cartao">
+                                <div>
+                                    <h3>
+                                        Histórico da sessão
+                                    </h3>
+                                    <p>
+                                        Até 120 leituras enquanto esta página estiver aberta.
+                                    </p>
+                                </div>
+                                <div>
+                                    <label class="sr-only" for="tipo-grafico">
+                                        Leitura do gráfico
+                                    </label>
+                                    <select id="tipo-grafico">
+                                        <option value="temperatura">
+                                            Temperatura · °C
+                                        </option>
+                                        <option value="umidade">
+                                            Umidade · %
+                                        </option>
+                                        <option value="pressao">
+                                            Pressão · hPa
+                                        </option>
+                                        <option value="qualidade_ar">
+                                            Leitura do ar · ADC
+                                        </option>
+                                        <option value="luminosidade">
+                                            Luz ambiente · ADC
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="area-grafico">
+                                <div class="grafico-vazio" id="grafico-vazio">
+                                    <svg class="icone" aria-hidden="true">
+                                        <use href="#i-grafico"/>
+                                    </svg>
+                                    <strong>
+                                        O gráfico começa com a primeira leitura.
+                                    </strong>
+                                    <span>
+                                        Conecte a estação ou veja os dados de exemplo.
+                                    </span>
+                                </div>
+                                <svg id="grafico" viewBox="0 0 640 230" role="img" aria-label="Histórico das leituras" hidden>
+                                    <g class="linhas-grafico">
+                                        <path d="M55 25H620M55 105H620M55 185H620"/>
+                                    </g>
+                                    <g class="rotulos-grafico">
+                                        <text id="escala-maxima" x="45" y="29" text-anchor="end">
+                                        </text>
+                                        <text id="escala-media" x="45" y="109" text-anchor="end">
+                                        </text>
+                                        <text id="escala-minima" x="45" y="189" text-anchor="end">
+                                        </text>
+                                        <text id="hora-inicio" x="55" y="216">
+                                        </text>
+                                        <text id="hora-fim" x="620" y="216" text-anchor="end">
+                                        </text>
+                                    </g>
+                                    <g id="serie-grafico">
+                                    </g>
+                                </svg>
+                            </div>
+                            <div class="resumo-grafico">
+                                <div>
+                                    <span>
+                                        Mínima
+                                    </span>
+                                    <strong id="valor-minimo">
+                                        —
+                                    </strong>
+                                </div>
+                                <div>
+                                    <span>
+                                        Média
+                                    </span>
+                                    <strong id="valor-medio">
+                                        —
+                                    </strong>
+                                </div>
+                                <div>
+                                    <span>
+                                        Máxima
+                                    </span>
+                                    <strong id="valor-maximo">
+                                        —
+                                    </strong>
+                                </div>
+                            </div>
+                        </article>
+                        <aside class="cartao configuracao" aria-labelledby="titulo-conexao">
+                            <span class="etiqueta">
+                                ESP32 / CONEXÃO
+                            </span>
+                            <h3 id="titulo-conexao">
+                                Conectar a estação
+                            </h3>
+                            <p>
+                                Informe o endereço que disponibiliza as leituras da sua ESP32.
+                            </p>
+                            <form id="form-conexao">
+                                <label for="endereco">
+                                    Endereço dos dados
+                                </label>
+                                <input id="endereco" name="endereco" type="url" placeholder="http://192.168.1.100/dados" autocomplete="off" spellcheck="false" required aria-describedby="ajuda-endereco">
+                                <label for="intervalo">
+                                    Intervalo de atualização
+                                </label>
+                                <select id="intervalo" name="intervalo">
+                                    <option value="5000">
+                                        A cada 5 segundos
+                                    </option>
+                                    <option value="10000">
+                                        A cada 10 segundos
+                                    </option>
+                                    <option value="30000">
+                                        A cada 30 segundos
+                                    </option>
+                                </select>
+                                <div class="botoes-conexao">
+                                    <button class="botao" type="submit" id="conectar">
+                                        Conectar
+                                    </button>
+                                    <button class="botao botao-contorno" type="button" id="desconectar" disabled>
+                                        Desconectar
+                                    </button>
+                                </div>
+                            </form>
+                            <p class="ajuda" id="ajuda-endereco">
+                                Para um endereço local por HTTP, use o projeto na mesma rede da ESP32. Na versão HTTPS, conecte uma API HTTPS.
+                            </p>
+                            <details class="formato-dados">
+                                <summary>
+                                    Formato dos dados
+                                </summary>
+                                <p>
+                                    A resposta deve ser um objeto JSON. Campos sem leitura podem vir como
+                                    <code>
+                                        null
+                                    </code>
+                                    .
+                                </p>
+                                <pre>{
+  "temperatura": 24.5,
+  "umidade": 62,
+  "pressao": 1013.2,
+  "qualidade_ar": 1380,
+  "luminosidade": 2100,
+  "chuva": false,
+  "timestamp": "2026-10-29T12:00:00Z"
+}</pre>
+                                <p>
+                                    Pressão em hPa. MQ135 e LDR em ADC de 0 a 4095. Chuva:
+                                    <code>
+                                        true
+                                    </code>
+                                    ou
+                                    <code>
+                                        false
+                                    </code>
+                                    . O horário é opcional; sem ele, usamos o momento do recebimento.
+                                </p>
+                            </details>
+                            <button class="botao-exemplo" id="ver-exemplo" type="button">
+                                Ver dados de exemplo
+                                <span aria-hidden="true">
+                                    →
+                                </span>
+                            </button>
+                        </aside>
+                    </div>
+                    <article class="cartao historico">
+                        <div class="titulo-cartao">
+                            <div>
+                                <h3>
+                                    Últimas leituras
+                                </h3>
+                                <p id="resumo-leituras">
+                                    O histórico será preenchido após o recebimento dos dados.
+                                </p>
+                            </div>
+                            <button class="botao botao-contorno" type="button" id="exportar" disabled>
+                                Baixar CSV
+                                <span aria-hidden="true">
+                                    ↓
+                                </span>
+                            </button>
+                        </div>
+                        <div class="tabela-rolagem" tabindex="0" role="region" aria-label="Tabela de leituras, com rolagem horizontal em telas pequenas">
+                            <table>
+                                <caption class="sr-only">
+                                    Até oito leituras mais recentes da estação. O CSV inclui todo o histórico da sessão.
+                                </caption>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">
+                                            Horário
+                                        </th>
+                                        <th scope="col">
+                                            Temp. (°C)
+                                        </th>
+                                        <th scope="col">
+                                            Umidade (%)
+                                        </th>
+                                        <th scope="col">
+                                            Pressão (hPa)
+                                        </th>
+                                        <th scope="col">
+                                            Ar (ADC)
+                                        </th>
+                                        <th scope="col">
+                                            Luz (ADC)
+                                        </th>
+                                        <th scope="col">
+                                            Chuva
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabela-leituras">
+                                    <tr>
+                                        <td colspan="7" class="tabela-vazia">
+                                            Aguardando a primeira leitura da estação.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="nota-sensores">
+                            MQ135 e LDR exibem leituras brutas. A conversão para concentração de gases ou iluminância depende da calibração e da montagem.
+                        </p>
+                    </article>
+                </div>
+            </section>
+        </main>
+        <footer>
+            <a href="#inicio" class="marca-rodape">
+                SkySense
+                <span>
+                    Estação meteorológica inteligente
+                </span>
+            </a>
+            <p>
+                Projeto acadêmico · ESP32 e sensores ambientais
+            </p>
+            <small>
+                ©
+                <span id="ano">
+                </span>
+                SkySense
+            </small>
+        </footer>
+    </body>
+</html>
