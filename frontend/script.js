@@ -15,8 +15,8 @@
     ============================================================ */
     const CONFIG = {
       USE_SIMULATION: false,                                              // false = busca dados reais em vez de simular
-      API_URL: 'http://localhost:8000/api/clima/historico?limite=1',      // endpoint com a leitura mais recente
-      HISTORY_URL: 'http://localhost:8000/api/clima/historico?limite=168',// endpoint com leituras passadas
+      API_URL: 'http://127.0.0.1:8000/api/clima/historico?limite=1',      // endpoint com a leitura mais recente
+      HISTORY_URL: 'http://127.0.0.1:8000/api/clima/historico?limite=168',// endpoint com leituras passadas
       POLL_INTERVAL_MS: 4000,                                             // frequência de atualização
     };
 
