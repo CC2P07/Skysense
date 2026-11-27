@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy import create_engine, Column, Float, Integer, String, DateTime
@@ -13,6 +14,15 @@ app = FastAPI(
     title="API Estacao Meteorologica SkySense",
     description="Backend unificado para recepcao e armazenamento de dados ambientais.",
     version="3.0.0"
+)
+
+# LIBERA ACESSO DO FRONTEND (CORS)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # CONFIGURACAO DO POSTGRESQL
@@ -45,15 +55,14 @@ SessionLocal = sessionmaker(
 
 Base = declarative_base()
 
-# MODELO DA TABELA 
+# MODELO DA TABELA (espelho exato da tabela no PostgreSQL)
 class ModeloClimaHistorico(Base):
     __tablename__ = "clima_historico"
     id = Column(Integer, primary_key=True, index=True)
     temperatura = Column(Float)
     umidade = Column(Float)
     pressao = Column(Float)
-    altitude = Column(Float)
-    luminosidade = Column(Integer)
+    luminosidade = Column(Float)
     gas = Column(Integer)
     cidade = Column(String, nullable=False)
     estado = Column(String, nullable=False)
@@ -61,12 +70,12 @@ class ModeloClimaHistorico(Base):
 
 # FORMATO DADOS RECEBIDOS
 class DadosClimaSchema(BaseModel):
-    usuario: str
+    usuario: Optional[str] = "esp32"
     temperatura: Optional[float] = None
     umidade: Optional[float] = None
     pressao: Optional[float] = None
     altitude: Optional[float] = None
-    luminosidade: Optional[int] = None
+    luminosidade: Optional[float] = None
     gas: Optional[int] = None
     cidade: str
     estado: str
@@ -74,7 +83,6 @@ class DadosClimaSchema(BaseModel):
 # INICIALIZACAO DO BANCO 
 @app.on_event("startup")
 def iniciar_banco():
-    # Cria a tabela unificada automaticamente no banco central
     Base.metadata.create_all(bind=engine)
     print("SkySense conectado ao banco de dados unificado e tabela verificada!")
 
@@ -88,7 +96,6 @@ def receber_dados(dados: DadosClimaSchema):
             temperatura=dados.temperatura,
             umidade=dados.umidade,
             pressao=dados.pressao,
-            altitude=dados.altitude,
             luminosidade=dados.luminosidade,
             gas=dados.gas,
             cidade=dados.cidade,
@@ -119,7 +126,7 @@ def receber_dados(dados: DadosClimaSchema):
 
 # ROTA GET - CONSULTAR HISTORICO
 @app.get("/api/clima/historico")
-def consultar_historico(usuario: Optional[str] = None, limite: int = 50):
+def consultar_historico(limite: int = 50):
     if limite < 1 or limite > 1000:
         raise HTTPException(
             status_code=400,
@@ -129,14 +136,9 @@ def consultar_historico(usuario: Optional[str] = None, limite: int = 50):
     conexao = SessionLocal()
 
     try:
-        query = conexao.query(ModeloClimaHistorico)
-        
-        # Se um usuário específico for passado na query, filtra por ele; senão, traz geral
-        if usuario:
-            query = query.filter(ModeloClimaHistorico.usuario == usuario)
-
         registros = (
-            query.order_by(ModeloClimaHistorico.id.desc())
+            conexao.query(ModeloClimaHistorico)
+            .order_by(ModeloClimaHistorico.id.desc())
             .limit(limite)
             .all()
         )
@@ -145,7 +147,6 @@ def consultar_historico(usuario: Optional[str] = None, limite: int = 50):
         for registro in registros:
             dados.append({
                 "id": registro.id,
-                "usuario": registro.usuario,
                 "temperatura": registro.temperatura,
                 "umidade": registro.umidade,
                 "pressao": registro.pressao,
